@@ -1,0 +1,6 @@
+{
+  "name": "AIAPPSY Link Engine",
+  "description": "Custom URL shortener and redirect engine for Google Cloud Run and custom domain routing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,11 +1,14 @@
-<div align="center">
+# AIAPPSY Link Engine — Custom URL Shortener & Redirect Service
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A production-grade, lightweight URL shortener and redirect engine designed for Google Cloud Run and custom domain routing.
 
-  <h1>Built with AI Studio</h2>
+## Features
+- **Instant HTTP 302 Redirection:** Sub-millisecond latency for custom slugs (e.g. `/apps`, `/hubzoo`).
+- **Interactive Management Dashboard:** Clean web interface to create, manage, and delete custom shortlinks.
+- **Click Tracking:** Real-time persistence of click statistics per link.
+- **Docker & Cloud Run Ready:** Includes minimal Alpine container configuration.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
-
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+## Deploying to Google Cloud Run
+1. Connect this GitHub repository in Google Cloud Run / Google AI Studio.
+2. Select Dockerfile build.
+3. Deploy! Google will provision a fully managed, auto-scaling HTTPS service.
