@@ -1,173 +1,449 @@
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-// Bind to 3000 in AI Studio development mode, or PORT (default 8080) for Google Cloud Run
-const PORT = process.env.NODE_ENV === 'development' ? 3000 : (process.env.PORT || 8080);
-const DATA_FILE = path.join(__dirname, 'links.json');
+const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Default preloaded links
-const DEFAULT_LINKS = {
-  "apps": {
-    "url": "https://saasapps-ai-studio-910579541086.us-west1.run.app",
-    "createdAt": new Date().toISOString(),
-    "clicks": 0
-  },
-  "hubzoo": {
-    "url": "https://hubzoo.ai.studio",
-    "createdAt": new Date().toISOString(),
-    "clicks": 0
-  },
-  "maxmotion": {
-    "url": "https://maxmotion.ai.studio",
-    "createdAt": new Date().toISOString(),
-    "clicks": 0
-  },
-  "agentur": {
-    "url": "https://saasapps-ai-studio-910579541086.us-west1.run.app?ref=agenturer.no",
-    "createdAt": new Date().toISOString(),
-    "clicks": 0
-  }
+const LINKS_FILE = path.join(__dirname, 'links.json');
+const SETTINGS_FILE = path.join(__dirname, 'settings.json');
+
+function parseDomainEntry(domainStr, label = '', isDefault = false) {
+  const clean = domainStr.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  const parts = clean.split('.');
+  const isSubdomain = parts.length >= 3;
+  const subdomain = isSubdomain ? parts[0] : '@';
+  const parentDomain = isSubdomain ? parts.slice(1).join('.') : clean;
+  const defaultLabel = isSubdomain ? `${clean} (Subdomene – ${clean.length} tegn)` : `${clean} (Toppdomene / Apex – ${clean.length} tegn)`;
+  const recordType = isSubdomain ? 'CNAME' : 'A (4 poster)';
+  const target = isSubdomain 
+    ? 'ghs.googlehosted.com.' 
+    : '216.239.32.21 (samt .34, .36, .38)';
+  return {
+    domain: clean,
+    label: label ? label.trim() : defaultLabel,
+    isDefault,
+    isSubdomain,
+    subdomain,
+    parentDomain,
+    recordType,
+    target,
+    aRecords: isSubdomain ? [] : ['216.239.32.21', '216.239.34.21', '216.239.36.21', '216.239.38.21'],
+    gcloudCommand: `gcloud beta run domain-mappings create --service aiappsy-link-engine --domain ${clean} --region us-west1`
+  };
+}
+
+const DEFAULT_SETTINGS = {
+  activeDomain: process.env.CUSTOM_DOMAIN || process.env.SHORT_DOMAIN || 'aiappsy.com',
+  domains: [
+    parseDomainEntry('aiappsy.com', 'aiappsy.com (Hoveddomene – 11 tegn)', true),
+    parseDomainEntry('go.aiappsy.no', 'go.aiappsy.no (Anbefalt subdomene – 13 tegn)', false),
+    parseDomainEntry('link.aiappsy.no', 'link.aiappsy.no (Subdomene – 15 tegn)', false),
+    parseDomainEntry('aiappsy.link', 'aiappsy.link (Toppdomene – 12 tegn)', false)
+  ]
 };
+
+function loadSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+      if (!data.domains || !Array.isArray(data.domains) || data.domains.length === 0) {
+        data.domains = DEFAULT_SETTINGS.domains;
+      }
+      if (!data.activeDomain) {
+        data.activeDomain = data.domains[0].domain;
+      }
+      return data;
+    }
+  } catch (err) {
+    console.error('Kunne ikke laste settings.json:', err.message);
+  }
+  return DEFAULT_SETTINGS;
+}
+
+function saveSettings(settings) {
+  try {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error('Feil ved lagring av settings.json:', err.message);
+    return false;
+  }
+}
 
 function loadLinks() {
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = fs.readFileSync(DATA_FILE, 'utf8');
-      return JSON.parse(data);
+    if (fs.existsSync(LINKS_FILE)) {
+      return JSON.parse(fs.readFileSync(LINKS_FILE, 'utf-8'));
     }
   } catch (err) {
-    console.error('Error reading links file:', err);
+    console.error('Kunne ikke laste links.json:', err.message);
   }
-  saveLinks(DEFAULT_LINKS);
-  return { ...DEFAULT_LINKS };
+  return {};
 }
 
 function saveLinks(links) {
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(links, null, 2), 'utf8');
+    fs.writeFileSync(LINKS_FILE, JSON.stringify(links, null, 2), 'utf-8');
+    return true;
   } catch (err) {
-    console.error('Error writing links file:', err);
+    console.error('Feil ved lagring av links.json:', err.message);
+    return false;
   }
 }
 
-// Generate random 5-char slug if custom not given
-function generateSlug() {
-  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-  let slug = '';
-  for (let i = 0; i < 5; i++) {
-    slug += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return slug;
-}
+// Serve static assets from public folder and current directory
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
-// Health check endpoint for Cloud Run and container probes
+// Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'aiappsy-link-engine' });
+  res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// API: List all links
+// API: Hent alle lenker
 app.get('/api/links', (req, res) => {
   const links = loadLinks();
-  res.json({ success: true, links });
+  const settings = loadSettings();
+  res.json({
+    success: true,
+    links,
+    activeDomain: settings.activeDomain,
+    domains: settings.domains,
+    count: Object.keys(links).length
+  });
 });
 
-// API: Create short link
-app.post('/api/shorten', (req, res) => {
-  let { url, customSlug } = req.body;
-  if (!url) {
-    return res.status(400).json({ success: false, error: 'URL is required' });
+// API: Opprett eller oppdater lenke
+app.post('/api/links', (req, res) => {
+  const { slug, url, domain } = req.body;
+  if (!slug || !url) {
+    return res.status(400).json({ success: false, error: 'Både kort-URL (slug) og måladresse (url) kreves.' });
   }
 
-  url = url.trim();
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://' + url;
+  const cleanSlug = slug.trim().toLowerCase().replace(/^\/+/, '');
+  let cleanUrl = url.trim();
+  if (!/^https?:\/\//i.test(cleanUrl)) {
+    cleanUrl = 'https://' + cleanUrl;
+  }
+
+  const reserved = ['api', 'health', 'public', 'assets', 'favicon.ico', 'settings', 'admin', 'domains'];
+  if (reserved.includes(cleanSlug)) {
+    return res.status(400).json({ success: false, error: `Slug "${cleanSlug}" er en reservert systemsti.` });
   }
 
   const links = loadLinks();
-  let slug = customSlug ? customSlug.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '') : '';
+  const settings = loadSettings();
+  const selectedDomain = domain || settings.activeDomain || 'aiappsy.com';
 
-  if (!slug) {
-    do {
-      slug = generateSlug();
-    } while (links[slug]);
-  }
-
-  // Check reserved routes
-  const reserved = ['api', 'public', 'assets', 'favicon.ico', 'index.html', 'health'];
-  if (reserved.includes(slug)) {
-    return res.status(400).json({ success: false, error: 'That custom slug is reserved. Choose another.' });
-  }
-
-  links[slug] = {
-    url,
-    createdAt: new Date().toISOString(),
-    clicks: links[slug] ? links[slug].clicks : 0
+  const isNew = !links[cleanSlug];
+  links[cleanSlug] = {
+    url: cleanUrl,
+    domain: selectedDomain,
+    clicks: links[cleanSlug] ? links[cleanSlug].clicks : 0,
+    createdAt: links[cleanSlug] ? links[cleanSlug].createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
   saveLinks(links);
-
-  const shortUrl = `${req.protocol}://${req.get('host')}/${slug}`;
-  res.json({ success: true, slug, shortUrl, destination: url, clicks: links[slug].clicks });
+  res.json({
+    success: true,
+    message: isNew ? `Kortlenke /${cleanSlug} opprettet!` : `Kortlenke /${cleanSlug} oppdatert!`,
+    slug: cleanSlug,
+    item: links[cleanSlug]
+  });
 });
 
-// API: Delete short link
+// API: Slett en lenke
 app.delete('/api/links/:slug', (req, res) => {
-  const { slug } = req.params;
+  const slug = req.params.slug.trim().toLowerCase();
   const links = loadLinks();
-
-  if (links[slug]) {
-    delete links[slug];
-    saveLinks(links);
-    return res.json({ success: true, message: 'Link deleted' });
+  if (!links[slug]) {
+    return res.status(404).json({ success: false, error: `Kortlenke /${slug} finnes ikke.` });
   }
 
-  res.status(404).json({ success: false, error: 'Slug not found' });
+  delete links[slug];
+  saveLinks(links);
+  res.json({ success: true, message: `Kortlenke /${slug} ble slettet.` });
 });
 
-// REDIRECT ROUTE: /:slug
-app.get('/:slug', (req, res, next) => {
-  const { slug } = req.params;
-  const links = loadLinks();
+// API: Hent domener
+app.get('/api/domains', (req, res) => {
+  const settings = loadSettings();
+  const proto = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  const cloudRunUrl = `${proto}://${host}`;
 
-  if (links[slug]) {
-    links[slug].clicks = (links[slug].clicks || 0) + 1;
-    saveLinks(links);
-    return res.redirect(302, links[slug].url);
+  res.json({
+    success: true,
+    activeDomain: settings.activeDomain,
+    domains: settings.domains,
+    cloudRunUrl,
+    serviceName: process.env.CLOUD_RUN_SERVICE || 'aiappsy-link-engine',
+    region: process.env.CLOUD_RUN_REGION || 'us-west1'
+  });
+});
+
+// API: Legg til domene
+app.post('/api/domains', (req, res) => {
+  const { domain, label, setAsDefault } = req.body;
+  if (!domain || typeof domain !== 'string') {
+    return res.status(400).json({ success: false, error: 'Vennligst oppgi et gyldig domenenavn.' });
   }
 
-  // Not found - show friendly 404 page
+  const cleanDomain = domain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  if (!cleanDomain || cleanDomain.length < 3 || !cleanDomain.includes('.')) {
+    return res.status(400).json({ success: false, error: 'Ugyldig domeneformat. Eksempel: go.aiappsy.no eller mittdomene.no' });
+  }
+
+  const settings = loadSettings();
+  const existing = settings.domains.find(d => d.domain === cleanDomain);
+  const entry = parseDomainEntry(cleanDomain, label, !!setAsDefault);
+
+  if (existing) {
+    existing.label = entry.label;
+    if (setAsDefault) {
+      settings.domains.forEach(d => d.isDefault = false);
+      existing.isDefault = true;
+      settings.activeDomain = cleanDomain;
+    }
+  } else {
+    if (setAsDefault) {
+      settings.domains.forEach(d => d.isDefault = false);
+      settings.activeDomain = cleanDomain;
+    }
+    settings.domains.push(entry);
+  }
+
+  saveSettings(settings);
+  res.json({
+    success: true,
+    message: `Domenet ${cleanDomain} er lagret og klart til bruk!`,
+    domain: entry,
+    activeDomain: settings.activeDomain,
+    domains: settings.domains
+  });
+});
+
+// API: Sett standard domene
+app.put('/api/domains/default', (req, res) => {
+  const { defaultDomain } = req.body;
+  if (!defaultDomain) {
+    return res.status(400).json({ success: false, error: 'Ingen domene oppgitt.' });
+  }
+
+  const clean = defaultDomain.trim().toLowerCase();
+  const settings = loadSettings();
+  const match = settings.domains.find(d => d.domain === clean);
+  if (!match) {
+    return res.status(404).json({ success: false, error: `Domenet ${clean} finnes ikke i listen.` });
+  }
+
+  settings.domains.forEach(d => d.isDefault = (d.domain === clean));
+  settings.activeDomain = clean;
+  saveSettings(settings);
+
+  res.json({
+    success: true,
+    message: `Standard domene er nå satt til ${clean}`,
+    activeDomain: clean,
+    domains: settings.domains
+  });
+});
+
+// API: Slett domene
+app.delete('/api/domains/:domain', (req, res) => {
+  const targetDomain = req.params.domain.trim().toLowerCase();
+  const settings = loadSettings();
+
+  if (settings.domains.length <= 1) {
+    return res.status(400).json({ success: false, error: 'Kan ikke slette det eneste gjenværende domenet.' });
+  }
+
+  const idx = settings.domains.findIndex(d => d.domain === targetDomain);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, error: `Domenet ${targetDomain} ble ikke funnet.` });
+  }
+
+  settings.domains.splice(idx, 1);
+  if (settings.activeDomain === targetDomain) {
+    settings.activeDomain = settings.domains[0].domain;
+    settings.domains[0].isDefault = true;
+  }
+
+  saveSettings(settings);
+  res.json({
+    success: true,
+    message: `Domenet ${targetDomain} ble fjernet`,
+    activeDomain: settings.activeDomain,
+    domains: settings.domains
+  });
+});
+
+// API: Hent innstillinger og miljøverdier
+app.get('/api/settings', (req, res) => {
+  const settings = loadSettings();
+  res.json({
+    success: true,
+    settings
+  });
+});
+
+// API: Oppdater innstillinger og miljøverdier
+app.post('/api/settings', (req, res) => {
+  const { serviceName, region, cloudRunUrl, customer, dns, activeDomain } = req.body;
+  const settings = loadSettings();
+
+  if (serviceName) settings.serviceName = serviceName.trim();
+  if (region) settings.region = region.trim();
+  if (cloudRunUrl) settings.cloudRunUrl = cloudRunUrl.trim();
+  if (activeDomain) settings.activeDomain = activeDomain.trim();
+  if (customer && typeof customer === 'object') {
+    settings.customer = { ...settings.customer, ...customer };
+  }
+  if (dns && typeof dns === 'object') {
+    settings.dns = { ...settings.dns, ...dns };
+  }
+
+  saveSettings(settings);
+  res.json({
+    success: true,
+    message: 'Systeminnstillinger og verdier er oppdatert og lagret!',
+    settings
+  });
+});
+
+// API: System info
+app.get('/api/info', (req, res) => {
+  const settings = loadSettings();
+  const links = loadLinks();
+  res.json({
+    service: 'AIAppsy Link Engine',
+    version: '1.0.0',
+    platform: 'Google Cloud Run',
+    region: process.env.CLOUD_RUN_REGION || 'us-west1',
+    activeDomain: settings.activeDomain,
+    totalLinks: Object.keys(links).length,
+    uptimeSeconds: Math.floor(process.uptime())
+  });
+});
+
+// API: Diagnose domene og SSL status
+app.get('/api/diagnose-domain', async (req, res) => {
+  const dns = require('dns').promises;
+  const https = require('https');
+  const domain = (req.query.domain || 'aiappsy.com').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  
+  try {
+    const aRecords = await dns.resolve4(domain).catch(() => []);
+    const cnameRecords = await dns.resolveCname(domain).catch(() => []);
+
+    const httpsStatus = await new Promise((resolve) => {
+      const request = https.request(`https://${domain}/`, {
+        method: 'HEAD',
+        timeout: 2500,
+        rejectUnauthorized: false
+      }, (resp) => {
+        resolve({ connected: true, statusCode: resp.statusCode });
+      });
+      request.on('error', (err) => {
+        resolve({ connected: false, error: err.message, code: err.code });
+      });
+      request.on('timeout', () => {
+        request.destroy();
+        resolve({ connected: false, error: 'Tilkobling tidsavbrutt', code: 'ETIMEDOUT' });
+      });
+      request.end();
+    });
+
+    res.json({
+      success: true,
+      domain,
+      aRecords,
+      cnameRecords,
+      httpsStatus,
+      isWorking: httpsStatus.connected,
+      help: httpsStatus.connected 
+        ? 'Domenet svarer på HTTPS og er operativt!' 
+        : `Domenet ${domain} avslutter tilkoblingen (${httpsStatus.error || httpsStatus.code}). Dette forårsaker ERR_CONNECTION_CLOSED i nettleseren inntil Google Cloud Run domain mapping og SSL-sertifikat er ferdig utstedt i Google Cloud Console.`
+    });
+  } catch (err) {
+    res.json({ success: false, domain, error: err.message });
+  }
+});
+
+
+// 302 Redirection Engine for short links
+app.get('/:slug', (req, res, next) => {
+  const slug = req.params.slug.trim().toLowerCase();
+
+  // Ignorer filer med filendelser eller reserverte nøkkelord
+  if (slug.includes('.') || ['api', 'health', 'favicon.ico'].includes(slug)) {
+    return next();
+  }
+
+  const links = loadLinks();
+  const item = links[slug];
+
+  if (item && item.url) {
+    // Inkrementer klikkteller
+    item.clicks = (item.clicks || 0) + 1;
+    item.lastClickedAt = new Date().toISOString();
+    saveLinks(links);
+
+    console.log(`[302 Redirect] /${slug} -> ${item.url} (Klikk #${item.clicks})`);
+    return res.redirect(302, item.url);
+  }
+
+  // 404 Not Found layout hvis slug ikke finnes
   res.status(404).send(`
     <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Link Not Found</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0f172a; color: #f8fafc; }
-          .card { background: #1e293b; padding: 2.5rem; border-radius: 1rem; text-align: center; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-          h1 { margin: 0 0 0.5rem; font-size: 2rem; color: #f43f5e; }
-          p { color: #94a3b8; line-height: 1.5; }
-          a { display: inline-block; margin-top: 1.5rem; background: #6366f1; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; }
-          a:hover { background: #4f46e5; }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <h1>404</h1>
-          <p>Kortlenken <strong>/${slug}</strong> finnes ikke eller er slettet.</p>
-          <a href="/">Lag ny kortlenke</a>
-        </div>
-      </body>
+    <html lang="no">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>404 - Kortlenke ikke funnet | AIAppsy</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: #131b2e; border: 1px solid #1e293b; border-radius: 12px; padding: 40px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+        .logo { font-size: 24px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; }
+        h1 { font-size: 22px; font-weight: 700; margin: 0 0 10px 0; color: #ffffff; }
+        p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; }
+        .slug-box { font-family: monospace; background: #0f172a; border: 1px solid #334155; padding: 8px 14px; border-radius: 6px; color: #f43f5e; font-size: 15px; display: inline-block; margin-bottom: 24px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; background: #0284c7; color: #ffffff; text-decoration: none; font-weight: 600; padding: 10px 20px; border-radius: 6px; font-size: 14px; }
+        .btn:hover { background: #0369a1; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="logo">⚡ AIAppsy Link Engine</div>
+        <div class="slug-box">/${slug}</div>
+        <h1>Kortlenken finnes ikke</h1>
+        <p>Denne omdirigeringen er enten utløpt, slettet eller ikke opprettet ennå.</p>
+        <a href="/" class="btn">Gå til Kontrollpanelet</a>
+      </div>
+    </body>
     </html>
   `);
 });
 
+// Serve root index.html
+app.get('*', (req, res) => {
+  const publicIndex = path.join(__dirname, 'public', 'index.html');
+  if (fs.existsSync(publicIndex)) {
+    return res.sendFile(publicIndex);
+  }
+  const rootIndex = path.join(__dirname, 'index.html');
+  if (fs.existsSync(rootIndex)) {
+    return res.sendFile(rootIndex);
+  }
+  res.send('AIAppsy Link Engine is active.');
+});
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`URL Shortener running on http://0.0.0.0:${PORT}`);
+  console.log(`[AIAppsy Link Engine] Kjører på port ${PORT}`);
 });
