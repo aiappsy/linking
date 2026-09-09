@@ -12,6 +12,46 @@ app.use(express.json());
 const LINKS_FILE = path.join(__dirname, 'links.json');
 const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 
+const ESSENTIAL_DEFAULT_LINKS = {
+  saasapps: {
+    url: 'https://saasapps.no',
+    domain: 'aiappsy.com',
+    clicks: 1,
+    createdAt: '2026-09-08T08:33:54.180Z',
+    updatedAt: new Date().toISOString()
+  },
+  artpro: {
+    url: 'https://artpro.aiappsy.com',
+    domain: 'aiappsy.com',
+    clicks: 2,
+    createdAt: '2026-09-05T02:00:00.000Z',
+    updatedAt: '2026-09-05T02:00:00.000Z',
+    lastClickedAt: '2026-09-05T04:09:35.903Z'
+  },
+  kontakt: {
+    url: 'https://aiappsy.com/#kontakt',
+    domain: 'aiappsy.com',
+    clicks: 14,
+    createdAt: '2026-09-05T01:30:00.000Z',
+    updatedAt: '2026-09-05T01:30:00.000Z'
+  },
+  demo: {
+    url: 'https://aiappsy.no/demo',
+    domain: 'go.aiappsy.no',
+    clicks: 42,
+    createdAt: '2026-09-04T12:00:00.000Z',
+    updatedAt: '2026-09-04T12:00:00.000Z'
+  },
+  linkman: {
+    url: 'https://aiappsy-link-engine.ai.studio',
+    domain: 'aiappsy.com',
+    clicks: 2,
+    createdAt: '2026-09-05T23:49:31.150Z',
+    updatedAt: '2026-09-05T23:49:31.150Z',
+    lastClickedAt: '2026-09-05T23:52:01.176Z'
+  }
+};
+
 function parseDomainEntry(domainStr, label = '', isDefault = false) {
   const clean = domainStr.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
   const parts = clean.split('.');
@@ -105,6 +145,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// API Cache-Control & headers middleware
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // API: Hent alle lenker
 app.get('/api/links', (req, res) => {
   const links = loadLinks();
@@ -155,6 +203,40 @@ app.post('/api/links', (req, res) => {
     message: isNew ? `Kortlenke /${cleanSlug} opprettet!` : `Kortlenke /${cleanSlug} oppdatert!`,
     slug: cleanSlug,
     item: links[cleanSlug]
+  });
+});
+
+// API: Oppdater spesifikk lenke
+app.put('/api/links/:slug', (req, res) => {
+  const targetSlug = (req.params.slug || '').trim().toLowerCase().replace(/^\/+/, '');
+  const { url, domain } = req.body;
+  if (!url) {
+    return res.status(400).json({ success: false, error: 'Måladresse (url) kreves.' });
+  }
+
+  let cleanUrl = url.trim();
+  if (!/^https?:\/\//i.test(cleanUrl)) {
+    cleanUrl = 'https://' + cleanUrl;
+  }
+
+  const links = loadLinks();
+  const settings = loadSettings();
+  const existing = links[targetSlug] || {};
+
+  links[targetSlug] = {
+    url: cleanUrl,
+    domain: domain || existing.domain || settings.activeDomain || 'aiappsy.com',
+    clicks: existing.clicks || 0,
+    createdAt: existing.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  saveLinks(links);
+  res.json({
+    success: true,
+    message: `Kortlenke /${targetSlug} ble oppdatert!`,
+    slug: targetSlug,
+    item: links[targetSlug]
   });
 });
 
@@ -377,12 +459,58 @@ app.get('/api/diagnose-domain', async (req, res) => {
 });
 
 
+// API: Test/Inspiser en kortlenke uten ekstern nettleser-omdirigering
+app.get('/api/test-link/:slug', (req, res) => {
+  let rawSlug = (req.params.slug || '').trim().replace(/^\/+|\/+$/g, '');
+  try { rawSlug = decodeURIComponent(rawSlug); } catch (e) {}
+  const slug = rawSlug.toLowerCase();
+
+  const links = loadLinks();
+  const item = links[slug];
+
+  if (item && item.url) {
+    // Inkrementer klikk
+    item.clicks = (item.clicks || 0) + 1;
+    item.lastClickedAt = new Date().toISOString();
+    saveLinks(links);
+
+    return res.json({
+      success: true,
+      found: true,
+      slug,
+      targetUrl: item.url,
+      domain: item.domain,
+      clicks: item.clicks,
+      httpStatus: 302,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  return res.status(404).json({
+    success: false,
+    found: false,
+    slug,
+    error: `Kortlenken /${slug} ble ikke funnet i systemet.`
+  });
+});
+
 // 302 Redirection Engine for short links
 app.get('/:slug', (req, res, next) => {
-  const slug = req.params.slug.trim().toLowerCase();
+  let rawSlug = (req.params.slug || '').trim().replace(/^\/+|\/+$/g, '');
+  try {
+    rawSlug = decodeURIComponent(rawSlug);
+  } catch (e) {}
 
-  // Ignorer filer med filendelser eller reserverte nøkkelord
-  if (slug.includes('.') || ['api', 'health', 'favicon.ico'].includes(slug)) {
+  if (!rawSlug) {
+    return next();
+  }
+
+  const slug = rawSlug.toLowerCase();
+
+  // Ignorer kun faktiske statiske ressurs-filendelser og systemruter
+  const staticExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.gif', '.webp', '.css', '.js', '.map', '.json', '.txt', '.xml'];
+  const isStaticFile = staticExtensions.some(ext => slug.endsWith(ext));
+  if (isStaticFile || ['api', 'health', 'public', 'assets', 'favicon.ico'].includes(slug)) {
     return next();
   }
 
@@ -395,8 +523,42 @@ app.get('/:slug', (req, res, next) => {
     item.lastClickedAt = new Date().toISOString();
     saveLinks(links);
 
-    console.log(`[302 Redirect] /${slug} -> ${item.url} (Klikk #${item.clicks})`);
-    return res.redirect(302, item.url);
+    // Videresend query parameters dersom de finnes i forespørselen (f.eks. ?ref=e-post)
+    let targetUrl = item.url;
+    const qIndex = req.originalUrl.indexOf('?');
+    if (qIndex !== -1) {
+      const qs = req.originalUrl.substring(qIndex + 1);
+      if (qs) {
+        targetUrl += (targetUrl.includes('?') ? '&' : '?') + qs;
+      }
+    }
+
+    console.log(`[302 Redirect Engine] /${slug} -> ${targetUrl} (Total klikk: ${item.clicks})`);
+
+    // Dual redirection: Både HTTP 302 Location-header og HTML Meta-Refresh / JS location.replace
+    res.status(302);
+    res.set('Location', targetUrl);
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    return res.send(`<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <title>Omdirigerer...</title>
+  <meta http-equiv="refresh" content="0; url=${encodeURI(targetUrl)}">
+  <script>window.location.replace(${JSON.stringify(targetUrl)});</script>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b0f19; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px;">
+  <div style="background: #131b2e; border: 1px solid #1e293b; border-radius: 12px; padding: 32px; max-width: 480px; width: 100%; text-align: center;">
+    <div style="font-size: 20px; font-weight: 800; color: #38bdf8; margin-bottom: 12px;">⚡ AIAppsy Link Engine</div>
+    <div style="font-size: 15px; color: #94a3b8; margin-bottom: 16px;">Omdirigerer deg automatisk til:</div>
+    <div style="font-family: monospace; background: #0f172a; border: 1px solid #334155; padding: 10px 14px; border-radius: 6px; color: #38bdf8; word-break: break-all; margin-bottom: 20px; font-size: 13px;">${encodeURI(targetUrl)}</div>
+    <a href="${encodeURI(targetUrl)}" style="display: inline-block; background: #0284c7; color: #ffffff; text-decoration: none; font-weight: 600; padding: 10px 20px; border-radius: 6px; font-size: 14px;">Klikk her om du ikke sendes videre</a>
+  </div>
+</body>
+</html>`);
   }
 
   // 404 Not Found layout hvis slug ikke finnes

@@ -2,9 +2,1676 @@
 <html lang="no">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=/public/index.html">
-  <script>window.location.href = '/public/index.html';</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIAppsy Link Engine | Cloud Run Enterprise URL Router</title>
+  <meta name="description" content="AIAppsy Enterprise Short Link Engine med Multi-Domain Mapping på Google Cloud Run">
+  <link rel="icon" type="image/x-icon" href="/app-favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #090d16;
+      --bg-panel: #0f172a;
+      --bg-card: #131d35;
+      --border-subtle: #1e293b;
+      --border-focus: #0284c7;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-cyan: #0284c7;
+      --accent-sky: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-canvas);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #ffffff;
+      font-size: 18px;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(2, 132, 199, 0.15);
+      color: var(--accent-sky);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    .nav-menu {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-item.active {
+      color: #ffffff;
+      background: rgba(2, 132, 199, 0.2);
+      font-weight: 600;
+      border-left: 3px solid var(--accent-sky);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cloud-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    /* Main Workspace */
+    .workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .top-bar {
+      padding: 18px 32px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-heading h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .page-heading p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .btn-primary {
+      background: var(--accent-cyan);
+      border: 1px solid #0284c7;
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: #0369a1;
+    }
+
+    .content-body {
+      padding: 32px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 24px;
+    }
+
+    .card-header {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Form */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .form-input, .form-select {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      color: #ffffff;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent-sky);
+    }
+
+    .preview-box {
+      background: var(--bg-canvas);
+      border: 1px dashed var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preview-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      color: var(--accent-sky);
+    }
+
+    /* Table */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+    }
+
+    th {
+      background: var(--bg-canvas);
+      padding: 12px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .slug-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--accent-sky);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dest-cell {
+      max-width: 320px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: #cbd5e1;
+    }
+
+    .badge-domain {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(2, 132, 199, 0.15);
+      color: #38bdf8;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .badge-default {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .btn-action {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .btn-action:hover {
+      background: #1e293b;
+      border-color: #475569;
+    }
+
+    .btn-del {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      color: #fb7185;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-del:hover {
+      background: rgba(244, 63, 94, 0.2);
+    }
+
+    /* In-App Confirmation Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      max-width: 440px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+      animation: modalPop 0.15s ease-out;
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Tabs & Content Panels */
+    .tab-panel {
+      display: none;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    /* DNS & Domains */
+    .dns-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .dns-box {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .dns-box-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .dns-box-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #ffffff;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .code-box {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid #0284c7;
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      font-size: 13.5px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 999;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <div class="brand-logo">⚡</div>
+        <div>
+          <div class="brand-title">AIAppsy Link Engine</div>
+          <div class="brand-badge">Google Cloud Run</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button type="button" class="nav-item active" onclick="switchTab('tab-links')">
+          <span>🔗</span><span>Kortlenker</span>
+        </button>
+        <button type="button" class="nav-item" onclick="switchTab('tab-domains')">
+          <span>🌐</span><span>Multi-Domain Mapping</span>
+        </button>
+        <button type="button" class="nav-item" onclick="switchTab('tab-analytics')">
+          <span>📊</span><span>Trafikkanalyse</span>
+        </button>
+        <button type="button" class="nav-item" onclick="switchTab('tab-cloudrun')">
+          <span>☁️</span><span>Cloud Run Konfig</span>
+        </button>
+        <button type="button" class="nav-item" onclick="switchTab('tab-rules')">
+          <span>⚙️</span><span>302 Omdirigeringer</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="cloud-status">
+          <div class="status-dot"></div>
+          <span>Cloud Run: Aktiv</span>
+        </div>
+        <div>Region: us-west1</div>
+        <div>Service: aiappsy-link-engine</div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <header class="top-bar">
+        <div class="page-heading">
+          <h1 id="page-title">Enterprise Short Link Management</h1>
+          <p id="page-subtitle">Administrer raske 302-omdirigeringer og egne subdomener</p>
+        </div>
+        <div class="top-actions">
+          <button type="button" class="btn-secondary" onclick="fetchLinks(true)">
+            <span>🔄</span><span>Oppdater</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <!-- TAB 1: KORTLENKER -->
+        <section id="tab-links" class="tab-panel active">
+          <!-- Create Short Link Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title"><span>➕</span> Opprett Ny Kortlenke</h2>
+                <div class="card-subtitle">Velg hvilket domene eller subdomene lenken skal opprettes under</div>
+              </div>
+            </div>
+
+            <form id="create-link-form" novalidate onsubmit="handleCreateLink(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="link-domain-select">Kortdomene (Base-URL):</label>
+                  <select id="link-domain-select" class="form-select" onchange="updateSlugPreview()">
+                    <!-- Populated dynamically via /api/domains -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="link-slug-input">Kortsti (Slug):</label>
+                  <input type="text" id="link-slug-input" class="form-input" placeholder="f.eks. artpro eller kampanje" required oninput="updateSlugPreview()">
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label for="link-dest-input">Full måladresse (Destinasjon URL):</label>
+                  <input type="text" id="link-dest-input" class="form-input" placeholder="https://dinside.no/artpro eller google.com" required>
+                </div>
+              </div>
+
+              <!-- Live Preview Box -->
+              <div class="preview-box">
+                <div>
+                  <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Forhåndsvisning av kortlenke:</div>
+                  <div id="live-slug-preview" class="preview-text">https://aiappsy.com/artpro</div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                  <button type="button" id="btn-cancel-edit" class="btn-action" style="display: none;" onclick="cancelEditLink()">
+                    <span>✖</span><span>Avbryt redigering</span>
+                  </button>
+                  <button type="submit" id="btn-save-link" class="btn-primary">
+                    <span id="btn-save-link-icon">🚀</span><span id="btn-save-link-text">Lagre &amp; Aktiver Lenke</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Diagnostic & Live Test Notice -->
+          <div class="card" style="border-left: 4px solid var(--accent-amber); background: rgba(245, 158, 11, 0.05); margin-bottom: 20px;">
+            <div style="display: flex; gap: 14px; align-items: flex-start;">
+              <span style="font-size: 24px; line-height: 1;">💡</span>
+              <div style="flex: 1;">
+                <div style="font-size: 14px; font-weight: 700; color: #fbbf24; margin-bottom: 4px;">
+                  Hvorfor gir https://aiappsy.com/linkman feilen «ERR_CONNECTION_CLOSED»?
+                </div>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0 0 10px 0;">
+                  Kortlenkemotoren i appen er <strong>100% aktiv og operativ</strong>. Årsaken til at nettleseren din viser <em>«avsluttet tilkoblingen uventet»</em> på <code>aiappsy.com</code>, er at Google Cloud Run krever at du legger inn domene-mapping i GCP slik at Google utsteder det godkjente SSL-sertifikatet for <code>aiappsy.com</code>.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                  <span style="font-size: 12.5px; font-weight: 600; color: var(--text-primary);">
+                    ✅ Test kortlenkene direkte nå:
+                  </span>
+                  <span style="font-size: 12px; color: var(--text-muted);">
+                    Klikk <strong>«⚡ Åpne test»</strong> i tabellen for umiddelbar 302-omdirigering via appens aktive URL!
+                  </span>
+                  <button type="button" class="btn-secondary" onclick="checkDomainHealth('aiappsy.com')" style="padding: 4px 10px; font-size: 12px;">
+                    <span>🔍</span><span>Diagnostiser aiappsy.com nå</span>
+                  </button>
+                </div>
+                <div id="domain-diag-result" style="display: none; margin-top: 10px; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.5;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Links Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title"><span>📋</span> Aktive Kortlenker (<span id="links-count">0</span>)</h2>
+                <div class="card-subtitle">Alle ruter omdirigeres umiddelbart med HTTP 302 Found</div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Kortlenke &amp; Rute</th>
+                    <th>Destinasjonsadresse</th>
+                    <th>Klikk</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Handlinger</th>
+                  </tr>
+                </thead>
+                <tbody id="links-table-tbody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: MULTI-DOMAIN MAPPING -->
+        <section id="tab-domains" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title"><span>➕</span> Legg til nytt domene eller subdomene</h2>
+                <div class="card-subtitle">Koble til et nytt kortdomene (f.eks. go.aiappsy.no, app.kunde.no eller kort.as)</div>
+              </div>
+            </div>
+
+            <form id="add-domain-form" onsubmit="handleAddDomain(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="new-domain-input">Domenenavn eller subdomene:</label>
+                  <input type="text" id="new-domain-input" class="form-input" placeholder="f.eks. app.kunde.no eller go.mittdomene.no" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-domain-label">Etikett / Kallenavn (valgfritt):</label>
+                  <input type="text" id="new-domain-label" class="form-input" placeholder="f.eks. Kundeportal, Kampanje 2026">
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                <input type="checkbox" id="new-domain-is-default" style="cursor: pointer;">
+                <label for="new-domain-is-default" style="font-size: 13px; color: var(--text-secondary); cursor: pointer;">
+                  Sett som standard kortdomene for nyopprettede lenker
+                </label>
+              </div>
+
+              <button type="submit" id="btn-add-domain" class="btn-primary">
+                <span>➕</span><span>Legg til domene &amp; generer DNS</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Connected Domains Table -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title"><span>🌐</span> Tilkoblede Domener &amp; Ruter</h2>
+                <div class="card-subtitle">Domener som er klare i nedtrekkslisten og rutes på Cloud Run</div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Domene</th>
+                    <th>Type</th>
+                    <th>Host</th>
+                    <th>DNS Målverdi</th>
+                    <th>Standard</th>
+                    <th style="text-align: right;">Handlinger</th>
+                  </tr>
+                </thead>
+                <tbody id="domains-table-tbody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DNS & Cloud Run Guidance -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title"><span>📋</span> DNS &amp; Cloud Run Ruting-veileder</h2>
+                <div class="card-subtitle">Velg et domene for å se nøyaktig CNAME / A-post og gcloud CLI-kommando:</div>
+              </div>
+            </div>
+
+            <div id="dns-pills-container" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+              <!-- Pills rendered via JS -->
+            </div>
+
+            <div class="dns-grid">
+              <div class="dns-box">
+                <div class="dns-box-title">Record Type</div>
+                <div id="dns-info-type" class="dns-box-value">CNAME</div>
+              </div>
+              <div class="dns-box">
+                <div class="dns-box-title">Vert / Subdomene (Host)</div>
+                <div id="dns-info-host" class="dns-box-value">go</div>
+              </div>
+              <div class="dns-box">
+                <div class="dns-box-title">Mål / Innhold (Target)</div>
+                <div id="dns-info-target" class="dns-box-value">ghs.googlehosted.com.</div>
+              </div>
+            </div>
+
+            <!-- Namecheap URL Redirect Guide (Quickest method) -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 14px; margin-bottom: 16px; font-size: 13px;">
+              <div style="font-weight: 700; color: #34d399; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span>⚡</span><span>Raskeste metode i Namecheap (Fungerer umiddelbart uten egen GCP-konto):</span>
+              </div>
+              <p style="color: var(--text-secondary); margin-bottom: 8px; line-height: 1.5;">
+                I stedet for CNAME til <code>ghs.googlehosted.com</code> (som krever Cloud Run-godkjenning i Google Cloud Console), kan du sette opp <strong>URL Redirect</strong> direkte i Namecheap. Da håndterer Namecheap SSL-sertifikatet automatisk:
+              </p>
+              <div style="font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.4); padding: 10px 12px; border-radius: 4px; color: #f8fafc; line-height: 1.6;">
+                <div>Type: <strong>URL Redirect Record</strong></div>
+                <div>Host: <strong>@</strong> (for aiappsy.com) eller <strong>go</strong> (for go.aiappsy.com)</div>
+                <div>Value / Destination URL: <strong style="color: #38bdf8;">https://ais-pre-53feievmlb7bxf43a2muqn-92119917321.asia-east1.run.app/</strong></div>
+                <div>Redirect Type: <strong>Permanent (301)</strong> eller <strong>Unmasked</strong></div>
+              </div>
+            </div>
+
+            <!-- Apex notice box -->
+            <div id="dns-apex-notice" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #fbbf24;">
+              <div style="font-weight: 700; margin-bottom: 4px;">⚠️ Viktig for toppdomener (Apex) uten subdomene:</div>
+              <p style="margin-bottom: 6px;">Et apex-domene som <code style="color:#ffffff;">aiappsy.com</code> kan ikke ha en CNAME på <code>@</code>. Legg inn disse <strong>4 A-postene</strong> hos Namecheap / domeneregistrator:</p>
+              <div style="font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 4px;">
+                <div>Type: A | Host: @ | Verdi: 216.239.32.21</div>
+                <div>Type: A | Host: @ | Verdi: 216.239.34.21</div>
+                <div>Type: A | Host: @ | Verdi: 216.239.36.21</div>
+                <div>Type: A | Host: @ | Verdi: 216.239.38.21</div>
+              </div>
+            </div>
+
+            <div class="code-box" id="dns-info-gcloud"># gcloud kommando</div>
+          </div>
+        </section>
+
+        <!-- TAB 3: TRAFIKKANALYSE -->
+        <section id="tab-analytics" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title"><span>📊</span> Trafikkanalyse &amp; Klikkfordeling</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <div class="dns-box">
+                <div class="dns-box-title">Totalt Antall Klikk</div>
+                <div id="analytics-total-clicks" class="dns-box-value" style="font-size: 24px; color: var(--accent-sky);">0</div>
+              </div>
+              <div class="dns-box">
+                <div class="dns-box-title">Totalt Antall Aktive Lenker</div>
+                <div id="analytics-total-links" class="dns-box-value" style="font-size: 24px; color: var(--accent-emerald);">0</div>
+              </div>
+              <div class="dns-box">
+                <div class="dns-box-title">Mest Populære Kortlenke</div>
+                <div id="analytics-top-slug" class="dns-box-value" style="font-size: 18px; color: #ffffff;">-</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: CLOUD RUN & SYSTEMVERDIER -->
+        <section id="tab-cloudrun" class="tab-panel">
+          <!-- System- & Miljøverdier konfigurert inne i appen -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title"><span>⚙️</span> System- &amp; Miljøverdier (Konfigurert i Appen)</h2>
+                <div class="card-subtitle">Alle disse verdiene lagres og administreres direkte i appens interne konfigurasjon</div>
+              </div>
+            </div>
+
+            <form id="system-settings-form" onsubmit="handleSaveSettings(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="cfg-service-name">Google Cloud Run Tjenestenavn:</label>
+                  <input type="text" id="cfg-service-name" class="form-input" value="aiappsy-link-engine" required>
+                </div>
+                <div class="form-group">
+                  <label for="cfg-region">Google Cloud Region:</label>
+                  <input type="text" id="cfg-region" class="form-input" value="us-west1" required>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label for="cfg-cloudrun-url">Direkte Cloud Run URL (for testing &amp; fallback):</label>
+                  <input type="url" id="cfg-cloudrun-url" class="form-input" value="https://aiappsy-link-engine-910579541086.us-west1.run.app" required>
+                </div>
+                <div class="form-group">
+                  <label for="cfg-active-domain">Aktivt Hoveddomene:</label>
+                  <input type="text" id="cfg-active-domain" class="form-input" value="aiappsy.com" required>
+                </div>
+                <div class="form-group">
+                  <label for="cfg-cname-target">Standard CNAME Mål (Subdomener):</label>
+                  <input type="text" id="cfg-cname-target" class="form-input" value="ghs.googlehosted.com." readonly style="opacity: 0.85;">
+                </div>
+              </div>
+
+              <div style="background: var(--bg-canvas); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Virksomhetsinformasjon (AIAppsy Norge):</div>
+                <div class="form-grid" style="margin-bottom: 0;">
+                  <div class="form-group">
+                    <label for="cfg-company-name">Selskapsnavn:</label>
+                    <input type="text" id="cfg-company-name" class="form-input" value="AIAppsy Norge AS">
+                  </div>
+                  <div class="form-group">
+                    <label for="cfg-company-org">Organisasjonsnummer:</label>
+                    <input type="text" id="cfg-company-org" class="form-input" value="934182471">
+                  </div>
+                  <div class="form-group">
+                    <label for="cfg-company-contact">Kontaktperson:</label>
+                    <input type="text" id="cfg-company-contact" class="form-input" value="Pål Juritzen">
+                  </div>
+                  <div class="form-group">
+                    <label for="cfg-company-email">E-postadresse:</label>
+                    <input type="email" id="cfg-company-email" class="form-input" value="paljuritzen@gmail.com">
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="submit" class="btn-primary">
+                  <span>💾</span><span>Lagre verdier i appen</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title"><span>☁️</span> Google Cloud Run CLI-kommandoer</h2>
+            </div>
+            <div class="code-box" id="cloudrun-cli-box"># Oppdater eller rull ut ny Cloud Run revisjon:
+gcloud run deploy aiappsy-link-engine \
+  --image gcr.io/aiappsy-engine/router:latest \
+  --platform managed \
+  --region us-west1 \
+  --allow-unauthenticated \
+  --port 3000
+
+# Knytt til domene:
+gcloud beta run domain-mappings create \
+  --service aiappsy-link-engine \
+  --domain aiappsy.com \
+  --region us-west1</div>
+          </div>
+        </section>
+
+        <!-- TAB 5: REGLER -->
+        <section id="tab-rules" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title"><span>⚙️</span> HTTP 302 Omdirigeringsmotor</h2>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;">
+              Hver innkommende forespørsel mot <code>/:slug</code> matches umiddelbart mot JSON-databasen. 
+              Dersom matchen eksisterer, returneres en HTTP 302 Found redirect direkte til mål-URL-en uten unødvendig forsinkelse, 
+              samtidig som klikktelleren inkrementeres asynkront.
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span id="toast-icon">✅</span>
+    <span id="toast-msg">Handling utført</span>
+  </div>
+
+  <!-- In-app Confirmation Modal (Never blocked by iframe sandbox) -->
+  <div id="confirm-modal-backdrop" class="modal-backdrop">
+    <div class="modal-box">
+      <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" id="modal-title">Bekreft handling</div>
+      <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 22px;" id="modal-message">Er du sikker?</div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-action" onclick="closeConfirmModal()">Avbryt</button>
+        <button type="button" id="modal-confirm-btn" class="btn-del" style="background: rgba(239, 68, 68, 0.9); color: #ffffff; font-weight: 600; padding: 7px 16px; border: none;" onclick="executeConfirmedDelete()">Slett permanent</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentDomains = [];
+    let activeDomain = 'aiappsy.com';
+    let currentLinks = {};
+    let selectedDnsDomain = 'aiappsy.com';
+
+    function showToast(msg, icon = '✅') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      document.getElementById('toast-icon').textContent = icon;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3200);
+    }
+
+    function copyText(text, msg = 'Kopiert til utklippstavlen!') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(msg));
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(msg);
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+
+      const matchingBtn = document.querySelector(`.nav-item[onclick="switchTab('${tabId}')"]`);
+      if (matchingBtn) matchingBtn.classList.add('active');
+
+      const titles = {
+        'tab-links': ['Enterprise Short Link Management', 'Administrer raske 302-omdirigeringer og egne subdomener'],
+        'tab-domains': ['Multi-Domain & Subdomene Mapping', 'Knytt til flere egne domener og subdomener på Cloud Run'],
+        'tab-analytics': ['Trafikkanalyse', 'Klikkfrekvens og fordeling per kortlenke'],
+        'tab-cloudrun': ['Google Cloud Run Konfigurasjon', 'Kommandoer og ruting-informasjon for produksjon'],
+        'tab-rules': ['HTTP 302 Omdirigeringsmotor', 'Systemruting og feilhåndtering']
+      };
+
+      if (titles[tabId]) {
+        document.getElementById('page-title').textContent = titles[tabId][0];
+        document.getElementById('page-subtitle').textContent = titles[tabId][1];
+      }
+
+      if (tabId === 'tab-domains') {
+        fetchDomains();
+      }
+    }
+
+    function updateSlugPreview() {
+      const domainSelect = document.getElementById('link-domain-select');
+      const slugInput = document.getElementById('link-slug-input');
+      const previewEl = document.getElementById('live-slug-preview');
+
+      const selectedDom = domainSelect ? domainSelect.value : activeDomain;
+      const slug = (slugInput && slugInput.value.trim()) ? slugInput.value.trim().toLowerCase().replace(/^\/+/, '') : 'artpro';
+      if (previewEl) {
+        previewEl.textContent = `https://${selectedDom}/${slug}`;
+      }
+    }
+
+    async function fetchDomains() {
+      try {
+        const res = await fetch('/api/domains');
+        const data = await res.json();
+        if (data.success) {
+          currentDomains = data.domains || [];
+          activeDomain = data.activeDomain || 'aiappsy.com';
+          populateDomainSelect();
+          renderDomainsTable();
+          renderDnsGuide();
+        }
+      } catch (err) {
+        console.error('Feil ved henting av domener:', err);
+      }
+    }
+
+    function populateDomainSelect() {
+      const select = document.getElementById('link-domain-select');
+      if (!select) return;
+      const currentVal = select.value;
+      const curHost = window.location.host;
+
+      let hostOpt = '';
+      if (curHost && !currentDomains.some(d => d.domain === curHost)) {
+        hostOpt = `<option value="${curHost}">⚡ Nåværende server (${curHost}) [Fungerer umiddelbart]</option>`;
+      }
+
+      select.innerHTML = hostOpt + currentDomains.map(d => {
+        const isDef = d.domain === activeDomain;
+        const type = d.isSubdomain ? 'Subdomene' : 'Toppdomene';
+        return `<option value="${d.domain}">🌐 ${d.domain} (${type})${isDef ? ' [Standard]' : ''}</option>`;
+      }).join('');
+
+      if (currentVal) {
+        select.value = currentVal;
+      } else {
+        select.value = activeDomain;
+      }
+      updateSlugPreview();
+    }
+
+    function renderDomainsTable() {
+      const tbody = document.getElementById('domains-table-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = currentDomains.map(d => {
+        const isDef = d.domain === activeDomain;
+        const typeBadge = d.isSubdomain 
+          ? `<span class="badge-domain">Subdomene</span>`
+          : `<span class="badge-domain" style="background: rgba(139, 92, 246, 0.15); color: #c084fc; border-color: rgba(192, 132, 252, 0.3);">Toppdomene (Apex)</span>`;
+
+        const defBadge = isDef 
+          ? `<span class="badge-default">⭐ Aktiv standard</span>`
+          : `<button type="button" class="btn-action" onclick="setDefaultDomain('${d.domain}')">Gjør til standard</button>`;
+
+        const deleteBtn = currentDomains.length > 1
+          ? `<button type="button" class="btn-del" onclick="openDeleteDomainModal('${d.domain}')"><span>🗑️</span><span>Slett</span></button>`
+          : `<span style="font-size: 11px; color: var(--text-muted);">Primær</span>`;
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: #ffffff; font-family: 'JetBrains Mono', monospace;">${d.domain}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${d.label || ''}</div>
+            </td>
+            <td>${typeBadge}</td>
+            <td><code style="font-family: monospace; color: #38bdf8;">${d.subdomain || '@'}</code></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <code style="font-family: monospace; font-size: 12px; color: #34d399;">${d.target}</code>
+                <button type="button" class="btn-action" onclick="copyText('${d.isSubdomain ? 'ghs.googlehosted.com.' : '216.239.32.21'}')" style="padding: 2px 6px; font-size: 11px;">Kopier</button>
+              </div>
+            </td>
+            <td>${defBadge}</td>
+            <td style="text-align: right;">
+              <div style="display: flex; justify-content: flex-end; gap: 6px;">
+                <button type="button" class="btn-action" onclick="selectDnsPill('${d.domain}')">
+                  <span>📋</span><span>DNS</span>
+                </button>
+                ${deleteBtn}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderDnsGuide() {
+      const pillsContainer = document.getElementById('dns-pills-container');
+      if (!pillsContainer) return;
+
+      if (!selectedDnsDomain || !currentDomains.some(d => d.domain === selectedDnsDomain)) {
+        selectedDnsDomain = activeDomain || (currentDomains[0] ? currentDomains[0].domain : 'aiappsy.com');
+      }
+
+      pillsContainer.innerHTML = currentDomains.map(d => {
+        const isActive = d.domain === selectedDnsDomain;
+        const style = isActive 
+          ? 'background: var(--accent-cyan); color: #ffffff; border-color: #38bdf8;'
+          : 'background: var(--bg-card); color: var(--text-secondary); border-color: var(--border-subtle);';
+        return `<button type="button" class="btn-action" style="${style}" onclick="selectDnsPill('${d.domain}')">
+          <span>🌐</span><span>${d.domain}</span>
+        </button>`;
+      }).join('');
+
+      const cur = currentDomains.find(d => d.domain === selectedDnsDomain) || currentDomains[0];
+      if (cur) {
+        document.getElementById('dns-info-type').textContent = cur.recordType || (cur.isSubdomain ? 'CNAME' : 'A (4 poster)');
+        document.getElementById('dns-info-host').textContent = cur.subdomain || '@';
+        document.getElementById('dns-info-target').textContent = cur.target;
+        document.getElementById('dns-info-gcloud').textContent = `# gcloud CLI-kommando for ${cur.domain}:\n${cur.gcloudCommand}`;
+
+        const apexNotice = document.getElementById('dns-apex-notice');
+        if (apexNotice) {
+          apexNotice.style.display = cur.isSubdomain ? 'none' : 'block';
+        }
+      }
+    }
+
+    function selectDnsPill(domain) {
+      selectedDnsDomain = domain;
+      renderDnsGuide();
+    }
+
+    async function handleAddDomain(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-domain-input');
+      const labelInput = document.getElementById('new-domain-label');
+      const defCheck = document.getElementById('new-domain-is-default');
+      const domain = input.value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+
+      if (!domain) {
+        showToast('Vennligst oppgi et gyldig domenenavn', '⚠️');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/domains', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domain,
+            label: labelInput.value.trim(),
+            setAsDefault: defCheck.checked
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Domenet ${domain} er lagt til og klart i nedtrekkslisten!`);
+          input.value = '';
+          labelInput.value = '';
+          defCheck.checked = false;
+          selectedDnsDomain = domain;
+          await fetchDomains();
+          const select = document.getElementById('link-domain-select');
+          if (select) select.value = domain;
+          updateSlugPreview();
+        } else {
+          showToast(data.error || 'Feil ved lagring av domene', '⚠️');
+        }
+      } catch (err) {
+        showToast('Nettverksfeil: ' + err.message, '⚠️');
+      }
+    }
+
+    async function setDefaultDomain(domain) {
+      try {
+        const res = await fetch('/api/domains/default', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ defaultDomain: domain })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Standarddomene satt til ${domain}!`);
+          await fetchDomains();
+        }
+      } catch (err) {
+        showToast('Kunne ikke sette standarddomene', '⚠️');
+      }
+    }
+
+    let pendingDeleteTarget = null;
+    let pendingDeleteType = null;
+    let editingSlug = null;
+
+    function openDeleteModal(slug) {
+      pendingDeleteTarget = slug;
+      pendingDeleteType = 'link';
+      document.getElementById('modal-title').textContent = 'Slett kortlenke permanent';
+      document.getElementById('modal-message').innerHTML = `Er du sikker på at du vil slette kortlenken <strong style="color: #38bdf8;">/${slug}</strong>? Dette fjerner omdirigeringen fullstendig.`;
+      document.getElementById('modal-confirm-btn').textContent = 'Ja, slett kortlenke';
+      document.getElementById('confirm-modal-backdrop').classList.add('active');
+    }
+
+    function openDeleteDomainModal(domain) {
+      pendingDeleteTarget = domain;
+      pendingDeleteType = 'domain';
+      document.getElementById('modal-title').textContent = 'Fjern tilkoblet domene';
+      document.getElementById('modal-message').innerHTML = `Er du sikker på at du vil fjerne domenet <strong style="color: #38bdf8;">${domain}</strong> fra listen over tilkoblede domener?`;
+      document.getElementById('modal-confirm-btn').textContent = 'Ja, fjern domene';
+      document.getElementById('confirm-modal-backdrop').classList.add('active');
+    }
+
+    function closeConfirmModal() {
+      pendingDeleteTarget = null;
+      pendingDeleteType = null;
+      const backdrop = document.getElementById('confirm-modal-backdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    async function executeConfirmedDelete() {
+      if (!pendingDeleteTarget) return;
+      const target = pendingDeleteTarget;
+      const type = pendingDeleteType;
+      closeConfirmModal();
+
+      if (type === 'link') {
+        // Umiddelbar lokal fjerning for responsivt grensesnitt
+        delete currentLinks[target];
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+        } catch (e) {}
+        renderLinksTable();
+        updateAnalytics();
+
+        try {
+          const res = await fetch('/api/links/' + encodeURIComponent(target), { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`Kortlenken /${target} er slettet permanent.`);
+            await fetchLinks();
+          } else {
+            showToast(data.error || 'Kunne ikke slette lenke på serveren', '⚠️');
+            await fetchLinks();
+          }
+        } catch (err) {
+          showToast('Nettverksfeil ved sletting: ' + err.message, '⚠️');
+          await fetchLinks();
+        }
+      } else if (type === 'domain') {
+        try {
+          const res = await fetch('/api/domains/' + encodeURIComponent(target), { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`Domenet ${target} ble fjernet.`);
+            await fetchDomains();
+          } else {
+            showToast(data.error || 'Kunne ikke fjerne domene', '⚠️');
+          }
+        } catch (err) {
+          showToast('Feil ved sletting av domene: ' + err.message, '⚠️');
+        }
+      }
+    }
+
+    const LOCAL_STORAGE_KEY = 'aiappsy_links_store_v3';
+
+    async function fetchLinks(notify = false) {
+      try {
+        const res = await fetch('/api/links?_t=' + Date.now(), {
+          headers: { 'Cache-Control': 'no-cache, no-store' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentLinks = data.links || {};
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+          } catch (e) {}
+          renderLinksTable();
+          updateAnalytics();
+          if (notify) showToast('Lenkeliste oppdatert!');
+        }
+      } catch (err) {
+        console.error('Feil ved henting av lenker:', err);
+        try {
+          const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+          if (cached) {
+            currentLinks = JSON.parse(cached);
+            renderLinksTable();
+            updateAnalytics();
+          }
+        } catch (e) {}
+      }
+    }
+
+    async function testAndOpenLink(slug, fallbackUrl) {
+      showToast(`Tester 302-omdirigering for /${slug}...`, '⚡');
+      try {
+        const res = await fetch('/api/test-link/' + encodeURIComponent(slug));
+        const data = await res.json();
+        if (data.success && data.targetUrl) {
+          showToast(`✅ 302 Bekreftet: /${slug} -> ${data.targetUrl}`, '✅');
+          await fetchLinks();
+          window.open(data.targetUrl, '_blank');
+        } else {
+          showToast(`Kortlenke funnet, åpner ${fallbackUrl}...`, '⚡');
+          window.open(fallbackUrl, '_blank');
+        }
+      } catch (err) {
+        window.open(fallbackUrl, '_blank');
+      }
+    }
+
+    function editLink(slug) {
+      const item = currentLinks[slug];
+      if (!item) return;
+
+      editingSlug = slug;
+      const domainSelect = document.getElementById('link-domain-select');
+      const slugInput = document.getElementById('link-slug-input');
+      const destInput = document.getElementById('link-dest-input');
+      const cancelBtn = document.getElementById('btn-cancel-edit');
+      const saveIcon = document.getElementById('btn-save-link-icon');
+      const saveText = document.getElementById('btn-save-link-text');
+
+      if (domainSelect && item.domain) {
+        domainSelect.value = item.domain;
+      }
+      if (slugInput) {
+        slugInput.value = slug;
+        slugInput.readOnly = true;
+        slugInput.style.opacity = '0.75';
+      }
+      if (destInput) {
+        destInput.value = item.url;
+        destInput.focus();
+        destInput.select();
+      }
+
+      if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+      if (saveIcon) saveIcon.textContent = '💾';
+      if (saveText) saveText.textContent = `Oppdater /${slug}`;
+
+      updateSlugPreview();
+
+      const formEl = document.getElementById('create-link-form');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      showToast(`Redigerer /${slug}. Skriv inn ny adresse og trykk «Oppdater»`, '✏️');
+    }
+
+    function cancelEditLink() {
+      editingSlug = null;
+      const slugInput = document.getElementById('link-slug-input');
+      const destInput = document.getElementById('link-dest-input');
+      const cancelBtn = document.getElementById('btn-cancel-edit');
+      const saveIcon = document.getElementById('btn-save-link-icon');
+      const saveText = document.getElementById('btn-save-link-text');
+
+      if (slugInput) {
+        slugInput.value = '';
+        slugInput.readOnly = false;
+        slugInput.style.opacity = '1';
+      }
+      if (destInput) {
+        destInput.value = '';
+      }
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      if (saveIcon) saveIcon.textContent = '🚀';
+      if (saveText) saveText.textContent = 'Lagre & Aktiver Lenke';
+
+      updateSlugPreview();
+    }
+
+    function renderLinksTable() {
+      const tbody = document.getElementById('links-table-tbody');
+      const countEl = document.getElementById('links-count');
+      const keys = Object.keys(currentLinks);
+      if (countEl) countEl.textContent = keys.length;
+
+      if (!tbody) return;
+      if (keys.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Ingen kortlenker opprettet ennå.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = keys.map(slug => {
+        const item = currentLinks[slug];
+        const dom = item.domain || activeDomain || 'aiappsy.com';
+        const fullShort = `https://${dom}/${slug}`;
+
+        return `
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="slug-cell" style="cursor: pointer;" onclick="testAndOpenLink('${slug}', '${item.url}')" title="Klikk for å teste 302 omdirigering og åpne destinasjon">
+                  <span>/${slug}</span>
+                  <span style="font-size: 11px; opacity: 0.7;">⚡</span>
+                </span>
+              </div>
+              <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                <span class="badge-domain">🌐 ${dom}</span>
+                ${dom.includes('aiappsy.com') ? '<span style="font-size: 10px; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); padding: 1px 5px; border-radius: 4px;" title="Krever Cloud Run domenemapping i GCP før https://aiappsy.com åpner">Venter på GCP SSL</span>' : ''}
+              </div>
+            </td>
+            <td class="dest-cell" title="${item.url}">
+              <a href="${item.url}" target="_blank" style="color: var(--text-secondary); text-decoration: none; word-break: break-all;">${item.url}</a>
+            </td>
+            <td><strong style="color: var(--accent-sky);">${item.clicks || 0}</strong></td>
+            <td><span class="badge-default">Aktiv 302</span></td>
+            <td style="text-align: right;">
+              <div style="display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="btn-action" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" onclick="editLink('${slug}')" title="Rediger måladresse for denne kortlenken">
+                  <span>✏️</span><span>Rediger</span>
+                </button>
+                <button type="button" class="btn-action" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border-color: rgba(52, 211, 153, 0.4); display: inline-flex; align-items: center; gap: 4px;" onclick="testAndOpenLink('${slug}', '${item.url}')" title="Test omdirigering og åpne destinasjon direkte">
+                  <span>⚡</span><span>Test & Åpne</span>
+                </button>
+                <button type="button" class="btn-action" onclick="copyText('${item.url}', 'Måladresse ${item.url} kopiert!')" title="Kopier destinasjons-URL">
+                  <span>🎯</span><span>Mål-URL</span>
+                </button>
+                <button type="button" class="btn-action" onclick="copyText('${fullShort}', 'Kortlenke ${fullShort} kopiert!')" title="Kopier https://${dom}/${slug}">
+                  <span>🌐</span><span>Kopier ${dom}</span>
+                </button>
+                <button type="button" class="btn-del" onclick="openDeleteModal('${slug}')" title="Slett lenke permanent">
+                  <span>🗑️</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateAnalytics() {
+      const keys = Object.keys(currentLinks);
+      let totalClicks = 0;
+      let topSlug = '-';
+      let maxClicks = -1;
+
+      keys.forEach(k => {
+        const c = currentLinks[k].clicks || 0;
+        totalClicks += c;
+        if (c > maxClicks) {
+          maxClicks = c;
+          topSlug = `/${k} (${c} klikk)`;
+        }
+      });
+
+      const totalClicksEl = document.getElementById('analytics-total-clicks');
+      const totalLinksEl = document.getElementById('analytics-total-links');
+      const topSlugEl = document.getElementById('analytics-top-slug');
+
+      if (totalClicksEl) totalClicksEl.textContent = totalClicks;
+      if (totalLinksEl) totalLinksEl.textContent = keys.length;
+      if (topSlugEl) topSlugEl.textContent = topSlug;
+    }
+
+    async function handleCreateLink(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const domainSelect = document.getElementById('link-domain-select');
+      const slugInput = document.getElementById('link-slug-input');
+      const destInput = document.getElementById('link-dest-input');
+      const saveBtn = document.getElementById('btn-save-link');
+
+      const domain = domainSelect ? domainSelect.value : (activeDomain || 'aiappsy.com');
+      const rawSlug = (editingSlug || (slugInput ? slugInput.value : '')).trim().toLowerCase();
+      const slug = rawSlug.replace(/^\/+/, '').replace(/\/+$/, '');
+      let url = destInput ? destInput.value.trim() : '';
+
+      if (!slug) {
+        showToast('Vennligst oppgi en kortsti (slug)', '⚠️');
+        if (slugInput) slugInput.focus();
+        return;
+      }
+      if (!url) {
+        showToast('Vennligst oppgi en måladresse (destinasjon)', '⚠️');
+        if (destInput) destInput.focus();
+        return;
+      }
+
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+        if (destInput) destInput.value = url;
+      }
+
+      if (saveBtn) saveBtn.disabled = true;
+
+      try {
+        const isUpdate = !!editingSlug;
+        const endpoint = isUpdate ? `/api/links/${encodeURIComponent(slug)}?_t=${Date.now()}` : `/api/links?_t=${Date.now()}`;
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        const res = await fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, url, domain })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const item = data.item || { url, domain, clicks: 0, createdAt: new Date().toISOString() };
+          currentLinks[slug] = item;
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+          } catch (e) {}
+          renderLinksTable();
+          updateAnalytics();
+
+          showToast(data.message || (isUpdate ? `Kortlenke /${slug} ble oppdatert!` : `Kortlenke /${slug} er aktivert!`));
+          cancelEditLink();
+          await fetchLinks();
+        } else {
+          showToast(data.error || 'Feil ved lagring av lenke', '⚠️');
+        }
+      } catch (err) {
+        showToast('Nettverksfeil ved lagring: ' + err.message, '⚠️');
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
+      }
+    }
+
+    async function fetchSettings() {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data.success && data.settings) {
+          const s = data.settings;
+          const sName = document.getElementById('cfg-service-name');
+          const sRegion = document.getElementById('cfg-region');
+          const sUrl = document.getElementById('cfg-cloudrun-url');
+          const sDom = document.getElementById('cfg-active-domain');
+          const sCname = document.getElementById('cfg-cname-target');
+          const cName = document.getElementById('cfg-company-name');
+          const cOrg = document.getElementById('cfg-company-org');
+          const cContact = document.getElementById('cfg-company-contact');
+          const cEmail = document.getElementById('cfg-company-email');
+          const cliBox = document.getElementById('cloudrun-cli-box');
+
+          if (sName && s.serviceName) sName.value = s.serviceName;
+          if (sRegion && s.region) sRegion.value = s.region;
+          if (sUrl && s.cloudRunUrl) sUrl.value = s.cloudRunUrl;
+          if (sDom && s.activeDomain) sDom.value = s.activeDomain;
+          if (sCname && s.dns && s.dns.cnameTarget) sCname.value = s.dns.cnameTarget;
+
+          if (s.customer) {
+            if (cName && s.customer.name) cName.value = s.customer.name;
+            if (cOrg && s.customer.orgNumber) cOrg.value = s.customer.orgNumber;
+            if (cContact && s.customer.contactPerson) cContact.value = s.customer.contactPerson;
+            if (cEmail && s.customer.email) cEmail.value = s.customer.email;
+          }
+
+          if (cliBox) {
+            const serv = s.serviceName || 'aiappsy-link-engine';
+            const reg = s.region || 'us-west1';
+            const dom = s.activeDomain || 'aiappsy.com';
+            cliBox.textContent = `# Oppdater eller rull ut ny Cloud Run revisjon:\ngcloud run deploy ${serv} \\\n  --image gcr.io/aiappsy-engine/router:latest \\\n  --platform managed \\\n  --region ${reg} \\\n  --allow-unauthenticated \\\n  --port 3000\n\n# Knytt til domene:\ngcloud beta run domain-mappings create \\\n  --service ${serv} \\\n  --domain ${dom} \\\n  --region ${reg}`;
+          }
+        }
+      } catch (err) {
+        console.error('Feil ved henting av innstillinger:', err);
+      }
+    }
+
+    async function handleSaveSettings(e) {
+      e.preventDefault();
+      const serviceName = document.getElementById('cfg-service-name').value.trim();
+      const region = document.getElementById('cfg-region').value.trim();
+      const cloudRunUrl = document.getElementById('cfg-cloudrun-url').value.trim();
+      const activeDomain = document.getElementById('cfg-active-domain').value.trim();
+      const customer = {
+        name: document.getElementById('cfg-company-name').value.trim(),
+        orgNumber: document.getElementById('cfg-company-org').value.trim(),
+        contactPerson: document.getElementById('cfg-company-contact').value.trim(),
+        email: document.getElementById('cfg-company-email').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serviceName, region, cloudRunUrl, activeDomain, customer })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || 'Innstillinger lagret i appen!');
+          await fetchDomains();
+          await fetchSettings();
+        } else {
+          showToast(data.error || 'Kunne ikke lagre', '⚠️');
+        }
+      } catch (err) {
+        showToast('Nettverksfeil ved lagring: ' + err.message, '⚠️');
+      }
+    }
+
+    async function checkDomainHealth(domain) {
+      const box = document.getElementById('domain-diag-result');
+      if (!box) return;
+      box.style.display = 'block';
+      box.style.background = 'rgba(15, 23, 42, 0.9)';
+      box.style.border = '1px solid #334155';
+      box.style.color = '#94a3b8';
+      box.innerHTML = `Sjekker sanntidsstatus for <strong>${domain}</strong>...`;
+
+      try {
+        const res = await fetch(`/api/diagnose-domain?domain=${encodeURIComponent(domain)}`);
+        const data = await res.json();
+        if (data.isWorking) {
+          box.style.background = 'rgba(16, 185, 129, 0.15)';
+          box.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+          box.style.color = '#34d399';
+          box.innerHTML = `✅ <strong>${domain} er operativt!</strong> HTTPS svarer med statuskode ${data.httpsStatus ? data.httpsStatus.statusCode : 200}.`;
+        } else {
+          box.style.background = 'rgba(239, 68, 68, 0.15)';
+          box.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+          box.style.color = '#f87171';
+          const a = data.aRecords && data.aRecords.length ? data.aRecords.join(', ') : 'Ingen funnet';
+          box.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 4px;">❌ Status for ${domain}: Tilkobling avvist av Google Frontend (ERR_CONNECTION_CLOSED)</div>
+            <div style="color: #cbd5e1; font-size: 11.5px; margin-bottom: 4px;">• DNS A-post peker til: <code>${a}</code> (Google IP)</div>
+            <div style="color: #cbd5e1; font-size: 11.5px; margin-bottom: 6px;">• Feilårsak i Chrome: <code>ERR_CONNECTION_CLOSED</code> skjer fordi Google Cloud Run ennå ikke har et godkjent SSL-sertifikat for ${domain}.</div>
+            <div style="background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; color: #fde047; font-size: 11.5px;">
+              <strong>Løsning for ${domain}:</strong> Gå til Google Cloud Console &gt; Cloud Run &gt; <em>«Manage Custom Domains»</em> og legg til <strong>${domain}</strong>, eller kjør:<br>
+              <code>gcloud beta run domain-mappings create --service aiappsy-link-engine --domain ${domain} --region us-west1</code>
+            </div>
+          `;
+        }
+      } catch (err) {
+        box.innerHTML = `Feil ved sjekk: ${err.message}`;
+      }
+    }
+
+    // Initialize on load
+    fetchDomains();
+    fetchLinks();
+    fetchSettings();
+  </script>
 </body>
 </html>

@@ -439,6 +439,39 @@
       background: rgba(244, 63, 94, 0.2);
     }
 
+    /* In-App Confirmation Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      max-width: 440px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+      animation: modalPop 0.15s ease-out;
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     /* Tabs & Content Panels */
     .tab-panel {
       display: none;
@@ -583,7 +616,7 @@
               </div>
             </div>
 
-            <form id="create-link-form" onsubmit="handleCreateLink(event)">
+            <form id="create-link-form" novalidate onsubmit="handleCreateLink(event)">
               <div class="form-grid">
                 <div class="form-group">
                   <label for="link-domain-select">Kortdomene (Base-URL):</label>
@@ -599,7 +632,7 @@
 
                 <div class="form-group" style="grid-column: 1 / -1;">
                   <label for="link-dest-input">Full måladresse (Destinasjon URL):</label>
-                  <input type="url" id="link-dest-input" class="form-input" placeholder="https://dinside.no/artpro-kampanje-side" required>
+                  <input type="text" id="link-dest-input" class="form-input" placeholder="https://dinside.no/artpro eller google.com" required>
                 </div>
               </div>
 
@@ -609,9 +642,14 @@
                   <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Forhåndsvisning av kortlenke:</div>
                   <div id="live-slug-preview" class="preview-text">https://aiappsy.com/artpro</div>
                 </div>
-                <button type="submit" class="btn-primary">
-                  <span>🚀</span><span>Lagre &amp; Aktiver Lenke</span>
-                </button>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                  <button type="button" id="btn-cancel-edit" class="btn-action" style="display: none;" onclick="cancelEditLink()">
+                    <span>✖</span><span>Avbryt redigering</span>
+                  </button>
+                  <button type="submit" id="btn-save-link" class="btn-primary">
+                    <span id="btn-save-link-icon">🚀</span><span id="btn-save-link-text">Lagre &amp; Aktiver Lenke</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -762,6 +800,22 @@
               </div>
             </div>
 
+            <!-- Namecheap URL Redirect Guide (Quickest method) -->
+            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 14px; margin-bottom: 16px; font-size: 13px;">
+              <div style="font-weight: 700; color: #34d399; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <span>⚡</span><span>Raskeste metode i Namecheap (Fungerer umiddelbart uten egen GCP-konto):</span>
+              </div>
+              <p style="color: var(--text-secondary); margin-bottom: 8px; line-height: 1.5;">
+                I stedet for CNAME til <code>ghs.googlehosted.com</code> (som krever Cloud Run-godkjenning i Google Cloud Console), kan du sette opp <strong>URL Redirect</strong> direkte i Namecheap. Da håndterer Namecheap SSL-sertifikatet automatisk:
+              </p>
+              <div style="font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.4); padding: 10px 12px; border-radius: 4px; color: #f8fafc; line-height: 1.6;">
+                <div>Type: <strong>URL Redirect Record</strong></div>
+                <div>Host: <strong>@</strong> (for aiappsy.com) eller <strong>go</strong> (for go.aiappsy.com)</div>
+                <div>Value / Destination URL: <strong style="color: #38bdf8;">https://ais-pre-53feievmlb7bxf43a2muqn-92119917321.asia-east1.run.app/</strong></div>
+                <div>Redirect Type: <strong>Permanent (301)</strong> eller <strong>Unmasked</strong></div>
+              </div>
+            </div>
+
             <!-- Apex notice box -->
             <div id="dns-apex-notice" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #fbbf24;">
               <div style="font-weight: 700; margin-bottom: 4px;">⚠️ Viktig for toppdomener (Apex) uten subdomene:</div>
@@ -909,6 +963,18 @@ gcloud beta run domain-mappings create \
     <span id="toast-msg">Handling utført</span>
   </div>
 
+  <!-- In-app Confirmation Modal (Never blocked by iframe sandbox) -->
+  <div id="confirm-modal-backdrop" class="modal-backdrop">
+    <div class="modal-box">
+      <div style="font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 8px;" id="modal-title">Bekreft handling</div>
+      <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 22px;" id="modal-message">Er du sikker?</div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="btn-action" onclick="closeConfirmModal()">Avbryt</button>
+        <button type="button" id="modal-confirm-btn" class="btn-del" style="background: rgba(239, 68, 68, 0.9); color: #ffffff; font-weight: 600; padding: 7px 16px; border: none;" onclick="executeConfirmedDelete()">Slett permanent</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentDomains = [];
     let activeDomain = 'aiappsy.com';
@@ -1033,7 +1099,7 @@ gcloud beta run domain-mappings create \
           : `<button type="button" class="btn-action" onclick="setDefaultDomain('${d.domain}')">Gjør til standard</button>`;
 
         const deleteBtn = currentDomains.length > 1
-          ? `<button type="button" class="btn-del" onclick="deleteDomain('${d.domain}')"><span>🗑️</span><span>Slett</span></button>`
+          ? `<button type="button" class="btn-del" onclick="openDeleteDomainModal('${d.domain}')"><span>🗑️</span><span>Slett</span></button>`
           : `<span style="font-size: 11px; color: var(--text-muted);">Primær</span>`;
 
         return `
@@ -1159,35 +1225,189 @@ gcloud beta run domain-mappings create \
       }
     }
 
-    async function deleteDomain(domain) {
-      if (!confirm(`Er du sikker på at du vil fjerne ${domain} fra listen over tilkoblede domener?`)) return;
-      try {
-        const res = await fetch('/api/domains/' + encodeURIComponent(domain), { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`Domenet ${domain} ble fjernet.`);
-          await fetchDomains();
-        } else {
-          showToast(data.error || 'Kunne ikke fjerne domene', '⚠️');
+    let pendingDeleteTarget = null;
+    let pendingDeleteType = null;
+    let editingSlug = null;
+
+    function openDeleteModal(slug) {
+      pendingDeleteTarget = slug;
+      pendingDeleteType = 'link';
+      document.getElementById('modal-title').textContent = 'Slett kortlenke permanent';
+      document.getElementById('modal-message').innerHTML = `Er du sikker på at du vil slette kortlenken <strong style="color: #38bdf8;">/${slug}</strong>? Dette fjerner omdirigeringen fullstendig.`;
+      document.getElementById('modal-confirm-btn').textContent = 'Ja, slett kortlenke';
+      document.getElementById('confirm-modal-backdrop').classList.add('active');
+    }
+
+    function openDeleteDomainModal(domain) {
+      pendingDeleteTarget = domain;
+      pendingDeleteType = 'domain';
+      document.getElementById('modal-title').textContent = 'Fjern tilkoblet domene';
+      document.getElementById('modal-message').innerHTML = `Er du sikker på at du vil fjerne domenet <strong style="color: #38bdf8;">${domain}</strong> fra listen over tilkoblede domener?`;
+      document.getElementById('modal-confirm-btn').textContent = 'Ja, fjern domene';
+      document.getElementById('confirm-modal-backdrop').classList.add('active');
+    }
+
+    function closeConfirmModal() {
+      pendingDeleteTarget = null;
+      pendingDeleteType = null;
+      const backdrop = document.getElementById('confirm-modal-backdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    async function executeConfirmedDelete() {
+      if (!pendingDeleteTarget) return;
+      const target = pendingDeleteTarget;
+      const type = pendingDeleteType;
+      closeConfirmModal();
+
+      if (type === 'link') {
+        // Umiddelbar lokal fjerning for responsivt grensesnitt
+        delete currentLinks[target];
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+        } catch (e) {}
+        renderLinksTable();
+        updateAnalytics();
+
+        try {
+          const res = await fetch('/api/links/' + encodeURIComponent(target), { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`Kortlenken /${target} er slettet permanent.`);
+            await fetchLinks();
+          } else {
+            showToast(data.error || 'Kunne ikke slette lenke på serveren', '⚠️');
+            await fetchLinks();
+          }
+        } catch (err) {
+          showToast('Nettverksfeil ved sletting: ' + err.message, '⚠️');
+          await fetchLinks();
         }
-      } catch (err) {
-        showToast('Feil ved sletting av domene', '⚠️');
+      } else if (type === 'domain') {
+        try {
+          const res = await fetch('/api/domains/' + encodeURIComponent(target), { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`Domenet ${target} ble fjernet.`);
+            await fetchDomains();
+          } else {
+            showToast(data.error || 'Kunne ikke fjerne domene', '⚠️');
+          }
+        } catch (err) {
+          showToast('Feil ved sletting av domene: ' + err.message, '⚠️');
+        }
       }
     }
 
+    const LOCAL_STORAGE_KEY = 'aiappsy_links_store_v3';
+
     async function fetchLinks(notify = false) {
       try {
-        const res = await fetch('/api/links');
+        const res = await fetch('/api/links?_t=' + Date.now(), {
+          headers: { 'Cache-Control': 'no-cache, no-store' }
+        });
         const data = await res.json();
         if (data.success) {
           currentLinks = data.links || {};
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+          } catch (e) {}
           renderLinksTable();
           updateAnalytics();
           if (notify) showToast('Lenkeliste oppdatert!');
         }
       } catch (err) {
         console.error('Feil ved henting av lenker:', err);
+        try {
+          const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+          if (cached) {
+            currentLinks = JSON.parse(cached);
+            renderLinksTable();
+            updateAnalytics();
+          }
+        } catch (e) {}
       }
+    }
+
+    async function testAndOpenLink(slug, fallbackUrl) {
+      showToast(`Tester 302-omdirigering for /${slug}...`, '⚡');
+      try {
+        const res = await fetch('/api/test-link/' + encodeURIComponent(slug));
+        const data = await res.json();
+        if (data.success && data.targetUrl) {
+          showToast(`✅ 302 Bekreftet: /${slug} -> ${data.targetUrl}`, '✅');
+          await fetchLinks();
+          window.open(data.targetUrl, '_blank');
+        } else {
+          showToast(`Kortlenke funnet, åpner ${fallbackUrl}...`, '⚡');
+          window.open(fallbackUrl, '_blank');
+        }
+      } catch (err) {
+        window.open(fallbackUrl, '_blank');
+      }
+    }
+
+    function editLink(slug) {
+      const item = currentLinks[slug];
+      if (!item) return;
+
+      editingSlug = slug;
+      const domainSelect = document.getElementById('link-domain-select');
+      const slugInput = document.getElementById('link-slug-input');
+      const destInput = document.getElementById('link-dest-input');
+      const cancelBtn = document.getElementById('btn-cancel-edit');
+      const saveIcon = document.getElementById('btn-save-link-icon');
+      const saveText = document.getElementById('btn-save-link-text');
+
+      if (domainSelect && item.domain) {
+        domainSelect.value = item.domain;
+      }
+      if (slugInput) {
+        slugInput.value = slug;
+        slugInput.readOnly = true;
+        slugInput.style.opacity = '0.75';
+      }
+      if (destInput) {
+        destInput.value = item.url;
+        destInput.focus();
+        destInput.select();
+      }
+
+      if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+      if (saveIcon) saveIcon.textContent = '💾';
+      if (saveText) saveText.textContent = `Oppdater /${slug}`;
+
+      updateSlugPreview();
+
+      const formEl = document.getElementById('create-link-form');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      showToast(`Redigerer /${slug}. Skriv inn ny adresse og trykk «Oppdater»`, '✏️');
+    }
+
+    function cancelEditLink() {
+      editingSlug = null;
+      const slugInput = document.getElementById('link-slug-input');
+      const destInput = document.getElementById('link-dest-input');
+      const cancelBtn = document.getElementById('btn-cancel-edit');
+      const saveIcon = document.getElementById('btn-save-link-icon');
+      const saveText = document.getElementById('btn-save-link-text');
+
+      if (slugInput) {
+        slugInput.value = '';
+        slugInput.readOnly = false;
+        slugInput.style.opacity = '1';
+      }
+      if (destInput) {
+        destInput.value = '';
+      }
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      if (saveIcon) saveIcon.textContent = '🚀';
+      if (saveText) saveText.textContent = 'Lagre & Aktiver Lenke';
+
+      updateSlugPreview();
     }
 
     function renderLinksTable() {
@@ -1206,15 +1426,16 @@ gcloud beta run domain-mappings create \
         const item = currentLinks[slug];
         const dom = item.domain || activeDomain || 'aiappsy.com';
         const fullShort = `https://${dom}/${slug}`;
-        const directTest = `${window.location.origin}/${slug}`;
 
         return `
           <tr>
             <td>
-              <a href="${directTest}" target="_blank" class="slug-cell" title="Klikk for å teste 302 omdirigering umiddelbart i nettleseren">
-                <span>/${slug}</span>
-                <span style="font-size: 11px; opacity: 0.7;">↗</span>
-              </a>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="slug-cell" style="cursor: pointer;" onclick="testAndOpenLink('${slug}', '${item.url}')" title="Klikk for å teste 302 omdirigering og åpne destinasjon">
+                  <span>/${slug}</span>
+                  <span style="font-size: 11px; opacity: 0.7;">⚡</span>
+                </span>
+              </div>
               <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
                 <span class="badge-domain">🌐 ${dom}</span>
                 ${dom.includes('aiappsy.com') ? '<span style="font-size: 10px; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); padding: 1px 5px; border-radius: 4px;" title="Krever Cloud Run domenemapping i GCP før https://aiappsy.com åpner">Venter på GCP SSL</span>' : ''}
@@ -1227,16 +1448,19 @@ gcloud beta run domain-mappings create \
             <td><span class="badge-default">Aktiv 302</span></td>
             <td style="text-align: right;">
               <div style="display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap;">
-                <a href="${directTest}" target="_blank" class="btn-action" style="background: rgba(14, 165, 233, 0.18); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Test 302 omdirigeringen direkte i nettleseren nå">
-                  <span>⚡</span><span>Åpne test</span>
-                </a>
-                <button type="button" class="btn-action" onclick="copyText('${directTest}', 'Live testlenke kopiert! Denne fungerer 100% umiddelbart i nettleseren!')" title="Kopier lenke som virker i nettleseren umiddelbart">
-                  <span>📋</span><span>Kopier live-URL</span>
+                <button type="button" class="btn-action" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" onclick="editLink('${slug}')" title="Rediger måladresse for denne kortlenken">
+                  <span>✏️</span><span>Rediger</span>
+                </button>
+                <button type="button" class="btn-action" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border-color: rgba(52, 211, 153, 0.4); display: inline-flex; align-items: center; gap: 4px;" onclick="testAndOpenLink('${slug}', '${item.url}')" title="Test omdirigering og åpne destinasjon direkte">
+                  <span>⚡</span><span>Test & Åpne</span>
+                </button>
+                <button type="button" class="btn-action" onclick="copyText('${item.url}', 'Måladresse ${item.url} kopiert!')" title="Kopier destinasjons-URL">
+                  <span>🎯</span><span>Mål-URL</span>
                 </button>
                 <button type="button" class="btn-action" onclick="copyText('${fullShort}', 'Kortlenke ${fullShort} kopiert!')" title="Kopier https://${dom}/${slug}">
                   <span>🌐</span><span>Kopier ${dom}</span>
                 </button>
-                <button type="button" class="btn-del" onclick="deleteLink('${slug}')" title="Slett lenke">
+                <button type="button" class="btn-del" onclick="openDeleteModal('${slug}')" title="Slett lenke permanent">
                   <span>🗑️</span>
                 </button>
               </div>
@@ -1271,54 +1495,65 @@ gcloud beta run domain-mappings create \
     }
 
     async function handleCreateLink(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
       const domainSelect = document.getElementById('link-domain-select');
       const slugInput = document.getElementById('link-slug-input');
       const destInput = document.getElementById('link-dest-input');
+      const saveBtn = document.getElementById('btn-save-link');
 
-      const domain = domainSelect.value;
-      const slug = slugInput.value.trim().toLowerCase().replace(/^\/+/, '');
-      const url = destInput.value.trim();
+      const domain = domainSelect ? domainSelect.value : (activeDomain || 'aiappsy.com');
+      const rawSlug = (editingSlug || (slugInput ? slugInput.value : '')).trim().toLowerCase();
+      const slug = rawSlug.replace(/^\/+/, '').replace(/\/+$/, '');
+      let url = destInput ? destInput.value.trim() : '';
 
-      if (!slug || !url) {
-        showToast('Vennligst fyll ut både slug og måladresse', '⚠️');
+      if (!slug) {
+        showToast('Vennligst oppgi en kortsti (slug)', '⚠️');
+        if (slugInput) slugInput.focus();
+        return;
+      }
+      if (!url) {
+        showToast('Vennligst oppgi en måladresse (destinasjon)', '⚠️');
+        if (destInput) destInput.focus();
         return;
       }
 
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+        if (destInput) destInput.value = url;
+      }
+
+      if (saveBtn) saveBtn.disabled = true;
+
       try {
-        const res = await fetch('/api/links', {
-          method: 'POST',
+        const isUpdate = !!editingSlug;
+        const endpoint = isUpdate ? `/api/links/${encodeURIComponent(slug)}?_t=${Date.now()}` : `/api/links?_t=${Date.now()}`;
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        const res = await fetch(endpoint, {
+          method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ slug, url, domain })
         });
         const data = await res.json();
         if (data.success) {
-          showToast(data.message || `Kortlenke /${slug} er aktivert!`);
-          slugInput.value = '';
-          destInput.value = '';
-          updateSlugPreview();
-          await fetchLinks();
-        } else {
-          showToast(data.error || 'Feil ved opprettelse', '⚠️');
-        }
-      } catch (err) {
-        showToast('Nettverksfeil ved opprettelse: ' + err.message, '⚠️');
-      }
-    }
+          const item = data.item || { url, domain, clicks: 0, createdAt: new Date().toISOString() };
+          currentLinks[slug] = item;
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+          } catch (e) {}
+          renderLinksTable();
+          updateAnalytics();
 
-    async function deleteLink(slug) {
-      if (!confirm(`Er du sikker på at du vil slette kortlenken /${slug}?`)) return;
-      try {
-        const res = await fetch('/api/links/' + slug, { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`Kortlenken /${slug} er slettet.`);
+          showToast(data.message || (isUpdate ? `Kortlenke /${slug} ble oppdatert!` : `Kortlenke /${slug} er aktivert!`));
+          cancelEditLink();
           await fetchLinks();
         } else {
-          showToast(data.error || 'Kunne ikke slette lenke', '⚠️');
+          showToast(data.error || 'Feil ved lagring av lenke', '⚠️');
         }
       } catch (err) {
-        showToast('Nettverksfeil ved sletting', '⚠️');
+        showToast('Nettverksfeil ved lagring: ' + err.message, '⚠️');
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
       }
     }
 
