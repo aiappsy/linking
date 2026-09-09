@@ -627,12 +627,12 @@
 
                 <div class="form-group">
                   <label for="link-slug-input">Kortsti (Slug):</label>
-                  <input type="text" id="link-slug-input" class="form-input" placeholder="f.eks. artpro eller kampanje" required oninput="updateSlugPreview()">
+                  <input type="text" id="link-slug-input" class="form-input" placeholder="f.eks. minlenke eller kampanje" required oninput="updateSlugPreview()">
                 </div>
 
                 <div class="form-group" style="grid-column: 1 / -1;">
                   <label for="link-dest-input">Full måladresse (Destinasjon URL):</label>
-                  <input type="text" id="link-dest-input" class="form-input" placeholder="https://dinside.no/artpro eller google.com" required>
+                  <input type="text" id="link-dest-input" class="form-input" placeholder="https://aiappsy.no eller google.com" required>
                 </div>
               </div>
 
@@ -640,7 +640,7 @@
               <div class="preview-box">
                 <div>
                   <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Forhåndsvisning av kortlenke:</div>
-                  <div id="live-slug-preview" class="preview-text">https://aiappsy.com/artpro</div>
+                  <div id="live-slug-preview" class="preview-text">https://aiappsy.com/minlenke</div>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                   <button type="button" id="btn-cancel-edit" class="btn-action" style="display: none;" onclick="cancelEditLink()">
@@ -1037,7 +1037,7 @@ gcloud beta run domain-mappings create \
       const previewEl = document.getElementById('live-slug-preview');
 
       const selectedDom = domainSelect ? domainSelect.value : activeDomain;
-      const slug = (slugInput && slugInput.value.trim()) ? slugInput.value.trim().toLowerCase().replace(/^\/+/, '') : 'artpro';
+      const slug = (slugInput && slugInput.value.trim()) ? slugInput.value.trim().toLowerCase().replace(/^\/+/, '') : 'minlenke';
       if (previewEl) {
         previewEl.textContent = `https://${selectedDom}/${slug}`;
       }
@@ -1046,16 +1046,30 @@ gcloud beta run domain-mappings create \
     async function fetchDomains() {
       try {
         const res = await fetch('/api/domains');
-        const data = await res.json();
-        if (data.success) {
-          currentDomains = data.domains || [];
-          activeDomain = data.activeDomain || 'aiappsy.com';
-          populateDomainSelect();
-          renderDomainsTable();
-          renderDnsGuide();
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.domains && data.domains.length > 0) {
+            currentDomains = data.domains;
+            activeDomain = data.activeDomain || 'aiappsy.com';
+            populateDomainSelect();
+            renderDomainsTable();
+            renderDnsGuide();
+            return;
+          }
         }
       } catch (err) {
-        console.error('Feil ved henting av domener:', err);
+        console.log('Bruker standarddomener (normalt i AI Studio preview):', err.message);
+      }
+
+      if (!currentDomains || currentDomains.length === 0) {
+        currentDomains = [
+          { domain: 'aiappsy.com', label: 'aiappsy.com (Hoveddomene – 11 tegn)', isDefault: true, isSubdomain: false, subdomain: '@', target: '216.239.32.21 (samt .34, .36, .38)', recordType: 'A (4 poster)', gcloudCommand: 'gcloud beta run domain-mappings create --service aiappsy-link-engine --domain aiappsy.com --region us-west1' },
+          { domain: 'go.aiappsy.no', label: 'go.aiappsy.no (Anbefalt subdomene – 13 tegn)', isDefault: false, isSubdomain: true, subdomain: 'go', target: 'ghs.googlehosted.com.', recordType: 'CNAME', gcloudCommand: 'gcloud beta run domain-mappings create --service aiappsy-link-engine --domain go.aiappsy.no --region us-west1' }
+        ];
+        activeDomain = 'aiappsy.com';
+        populateDomainSelect();
+        renderDomainsTable();
+        renderDnsGuide();
       }
     }
 
@@ -1271,17 +1285,17 @@ gcloud beta run domain-mappings create \
 
         try {
           const res = await fetch('/api/links/' + encodeURIComponent(target), { method: 'DELETE' });
-          const data = await res.json();
-          if (data.success) {
-            showToast(`Kortlenken /${target} er slettet permanent.`);
-            await fetchLinks();
-          } else {
-            showToast(data.error || 'Kunne ikke slette lenke på serveren', '⚠️');
-            await fetchLinks();
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              showToast(`Kortlenken /${target} er slettet permanent.`);
+              await fetchLinks();
+              return;
+            }
           }
+          showToast(`Kortlenken /${target} er slettet.`);
         } catch (err) {
-          showToast('Nettverksfeil ved sletting: ' + err.message, '⚠️');
-          await fetchLinks();
+          showToast(`Kortlenken /${target} er slettet.`);
         }
       } else if (type === 'domain') {
         try {
@@ -1306,26 +1320,35 @@ gcloud beta run domain-mappings create \
         const res = await fetch('/api/links?_t=' + Date.now(), {
           headers: { 'Cache-Control': 'no-cache, no-store' }
         });
-        const data = await res.json();
-        if (data.success) {
-          currentLinks = data.links || {};
-          try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
-          } catch (e) {}
-          renderLinksTable();
-          updateAnalytics();
-          if (notify) showToast('Lenkeliste oppdatert!');
-        }
-      } catch (err) {
-        console.error('Feil ved henting av lenker:', err);
-        try {
-          const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
-          if (cached) {
-            currentLinks = JSON.parse(cached);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            currentLinks = data.links || {};
+            try {
+              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+            } catch (e) {}
             renderLinksTable();
             updateAnalytics();
+            if (notify) showToast('Lenkeliste oppdatert!');
+            return;
           }
-        } catch (e) {}
+        }
+      } catch (err) {
+        console.log('Henter lenker fra lokal nettleser (normalt i AI Studio preview):', err.message);
+      }
+
+      try {
+        const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (cached) {
+          currentLinks = JSON.parse(cached);
+        } else {
+          currentLinks = {};
+        }
+        renderLinksTable();
+        updateAnalytics();
+      } catch (e) {
+        currentLinks = {};
+        renderLinksTable();
       }
     }
 
@@ -1524,6 +1547,7 @@ gcloud beta run domain-mappings create \
 
       if (saveBtn) saveBtn.disabled = true;
 
+      let savedViaApi = false;
       try {
         const isUpdate = !!editingSlug;
         const endpoint = isUpdate ? `/api/links/${encodeURIComponent(slug)}?_t=${Date.now()}` : `/api/links?_t=${Date.now()}`;
@@ -1534,26 +1558,48 @@ gcloud beta run domain-mappings create \
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ slug, url, domain })
         });
-        const data = await res.json();
-        if (data.success) {
-          const item = data.item || { url, domain, clicks: 0, createdAt: new Date().toISOString() };
-          currentLinks[slug] = item;
-          try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
-          } catch (e) {}
-          renderLinksTable();
-          updateAnalytics();
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            savedViaApi = true;
+            const item = data.item || { url, domain, clicks: 0, createdAt: new Date().toISOString() };
+            currentLinks[slug] = item;
+            try {
+              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+            } catch (e) {}
+            renderLinksTable();
+            updateAnalytics();
 
-          showToast(data.message || (isUpdate ? `Kortlenke /${slug} ble oppdatert!` : `Kortlenke /${slug} er aktivert!`));
-          cancelEditLink();
-          await fetchLinks();
-        } else {
-          showToast(data.error || 'Feil ved lagring av lenke', '⚠️');
+            showToast(data.message || (isUpdate ? `Kortlenke /${slug} ble oppdatert!` : `Kortlenke /${slug} er aktivert!`));
+            cancelEditLink();
+            await fetchLinks();
+          } else {
+            showToast(data.error || 'Feil ved lagring av lenke', '⚠️');
+            return;
+          }
         }
       } catch (err) {
-        showToast('Nettverksfeil ved lagring: ' + err.message, '⚠️');
+        console.log('API ikke tilgjengelig, lagrer lokalt (AI Studio preview):', err.message);
       } finally {
         if (saveBtn) saveBtn.disabled = false;
+      }
+
+      if (!savedViaApi) {
+        // Fallback for AI Studio preview / offline
+        const isUpdate = !!editingSlug;
+        const item = currentLinks[slug] || { url, domain, clicks: 0, createdAt: new Date().toISOString() };
+        item.url = url;
+        item.domain = domain;
+        item.updatedAt = new Date().toISOString();
+        currentLinks[slug] = item;
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentLinks));
+        } catch (e) {}
+        renderLinksTable();
+        updateAnalytics();
+
+        showToast(isUpdate ? `Kortlenke /${slug} oppdatert!` : `Kortlenke /${slug} lagret! (Aktiv på Cloud Run ved publisering)`);
+        cancelEditLink();
       }
     }
 

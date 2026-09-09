@@ -12,45 +12,19 @@ app.use(express.json());
 const LINKS_FILE = path.join(__dirname, 'links.json');
 const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 
-const ESSENTIAL_DEFAULT_LINKS = {
-  saasapps: {
-    url: 'https://saasapps.no',
-    domain: 'aiappsy.com',
-    clicks: 1,
-    createdAt: '2026-09-08T08:33:54.180Z',
-    updatedAt: new Date().toISOString()
-  },
-  artpro: {
-    url: 'https://artpro.aiappsy.com',
-    domain: 'aiappsy.com',
-    clicks: 2,
-    createdAt: '2026-09-05T02:00:00.000Z',
-    updatedAt: '2026-09-05T02:00:00.000Z',
-    lastClickedAt: '2026-09-05T04:09:35.903Z'
-  },
-  kontakt: {
-    url: 'https://aiappsy.com/#kontakt',
-    domain: 'aiappsy.com',
-    clicks: 14,
-    createdAt: '2026-09-05T01:30:00.000Z',
-    updatedAt: '2026-09-05T01:30:00.000Z'
-  },
-  demo: {
-    url: 'https://aiappsy.no/demo',
-    domain: 'go.aiappsy.no',
-    clicks: 42,
-    createdAt: '2026-09-04T12:00:00.000Z',
-    updatedAt: '2026-09-04T12:00:00.000Z'
-  },
-  linkman: {
-    url: 'https://aiappsy-link-engine.ai.studio',
-    domain: 'aiappsy.com',
-    clicks: 2,
-    createdAt: '2026-09-05T23:49:31.150Z',
-    updatedAt: '2026-09-05T23:49:31.150Z',
-    lastClickedAt: '2026-09-05T23:52:01.176Z'
-  }
-};
+let firestoreDb = null;
+let isFirestoreReady = false;
+let linksMemoryCache = null;
+let settingsMemoryCache = null;
+
+try {
+  const { Firestore } = require('@google-cloud/firestore');
+  // Initialize Firestore client with ignoreUndefinedProperties
+  firestoreDb = new Firestore({ ignoreUndefinedProperties: true });
+  console.log('[Firestore] Klient initialisert. Kobler til Google Cloud Firestore...');
+} catch (err) {
+  console.log('[Firestore] Kunne ikke laste Firestore-bibliotek, kjører i lokal filmodus:', err.message);
+}
 
 function parseDomainEntry(domainStr, label = '', isDefault = false) {
   const clean = domainStr.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/+$/, '');
@@ -87,7 +61,7 @@ const DEFAULT_SETTINGS = {
   ]
 };
 
-function loadSettings() {
+function loadSettingsFromFile() {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
@@ -105,7 +79,7 @@ function loadSettings() {
   return DEFAULT_SETTINGS;
 }
 
-function saveSettings(settings) {
+function saveSettingsToFile(settings) {
   try {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
     return true;
@@ -115,10 +89,11 @@ function saveSettings(settings) {
   }
 }
 
-function loadLinks() {
+function loadLinksFromFile() {
   try {
     if (fs.existsSync(LINKS_FILE)) {
-      return JSON.parse(fs.readFileSync(LINKS_FILE, 'utf-8'));
+      const content = fs.readFileSync(LINKS_FILE, 'utf-8');
+      return content ? JSON.parse(content) : {};
     }
   } catch (err) {
     console.error('Kunne ikke laste links.json:', err.message);
@@ -126,7 +101,7 @@ function loadLinks() {
   return {};
 }
 
-function saveLinks(links) {
+function saveLinksToFile(links) {
   try {
     fs.writeFileSync(LINKS_FILE, JSON.stringify(links, null, 2), 'utf-8');
     return true;
@@ -134,6 +109,99 @@ function saveLinks(links) {
     console.error('Feil ved lagring av links.json:', err.message);
     return false;
   }
+}
+
+// Initial synkronisering mot Firestore ved oppstart
+async function syncFromFirestore() {
+  linksMemoryCache = loadLinksFromFile();
+  settingsMemoryCache = loadSettingsFromFile();
+
+  if (!firestoreDb) return;
+
+  try {
+    const snapshot = await firestoreDb.collection('links').get();
+    const remoteLinks = {};
+    snapshot.forEach(doc => {
+      remoteLinks[doc.id] = doc.data();
+    });
+
+    if (Object.keys(remoteLinks).length > 0) {
+      linksMemoryCache = remoteLinks;
+      saveLinksToFile(remoteLinks);
+      console.log(`[Firestore] Synkroniserte ${Object.keys(remoteLinks).length} lenker fra Firestore.`);
+    } else if (Object.keys(linksMemoryCache).length > 0) {
+      // Last opp eksisterende lokale lenker til Firestore
+      const batch = firestoreDb.batch();
+      for (const [slug, item] of Object.entries(linksMemoryCache)) {
+        batch.set(firestoreDb.collection('links').doc(slug), item);
+      }
+      await batch.commit();
+      console.log(`[Firestore] Lastet opp ${Object.keys(linksMemoryCache).length} lokale lenker til Firestore.`);
+    }
+
+    try {
+      const setDoc = await firestoreDb.collection('settings').doc('global').get();
+      if (setDoc.exists) {
+        settingsMemoryCache = setDoc.data();
+        saveSettingsToFile(settingsMemoryCache);
+        console.log('[Firestore] Innstillinger synkronisert fra Firestore.');
+      }
+    } catch (e) {}
+
+    isFirestoreReady = true;
+    console.log('[Firestore] Persistent database er tilkoblet og klar!');
+  } catch (err) {
+    console.warn('[Firestore] Info: Firestore ikke tilgjengelig eller ikke aktivert ennå. Bruker lokal fillagring:', err.message);
+  }
+}
+syncFromFirestore();
+
+function loadSettings() {
+  if (!settingsMemoryCache) {
+    settingsMemoryCache = loadSettingsFromFile();
+  }
+  return settingsMemoryCache;
+}
+
+function saveSettings(settings) {
+  settingsMemoryCache = settings;
+  saveSettingsToFile(settings);
+  if (isFirestoreReady && firestoreDb) {
+    firestoreDb.collection('settings').doc('global').set(settings, { merge: true })
+      .catch(err => console.error('[Firestore] Feil ved lagring av innstillinger:', err.message));
+  }
+  return true;
+}
+
+function loadLinks() {
+  if (!linksMemoryCache) {
+    linksMemoryCache = loadLinksFromFile();
+  }
+  return linksMemoryCache;
+}
+
+function saveLinks(links, modifiedSlug = null) {
+  linksMemoryCache = links;
+  saveLinksToFile(links);
+
+  if (isFirestoreReady && firestoreDb) {
+    if (modifiedSlug) {
+      if (links[modifiedSlug]) {
+        firestoreDb.collection('links').doc(modifiedSlug).set(links[modifiedSlug], { merge: true })
+          .catch(err => console.error(`[Firestore] Feil ved lagring av /${modifiedSlug}:`, err.message));
+      } else {
+        firestoreDb.collection('links').doc(modifiedSlug).delete()
+          .catch(err => console.error(`[Firestore] Feil ved sletting av /${modifiedSlug}:`, err.message));
+      }
+    } else {
+      const batch = firestoreDb.batch();
+      for (const [slug, item] of Object.entries(links)) {
+        batch.set(firestoreDb.collection('links').doc(slug), item);
+      }
+      batch.commit().catch(err => console.error('[Firestore] Batch-lagringsfeil:', err.message));
+    }
+  }
+  return true;
 }
 
 // Serve static assets from public folder and current directory
@@ -197,7 +265,7 @@ app.post('/api/links', (req, res) => {
     updatedAt: new Date().toISOString()
   };
 
-  saveLinks(links);
+  saveLinks(links, cleanSlug);
   res.json({
     success: true,
     message: isNew ? `Kortlenke /${cleanSlug} opprettet!` : `Kortlenke /${cleanSlug} oppdatert!`,
@@ -231,7 +299,7 @@ app.put('/api/links/:slug', (req, res) => {
     updatedAt: new Date().toISOString()
   };
 
-  saveLinks(links);
+  saveLinks(links, targetSlug);
   res.json({
     success: true,
     message: `Kortlenke /${targetSlug} ble oppdatert!`,
@@ -249,7 +317,7 @@ app.delete('/api/links/:slug', (req, res) => {
   }
 
   delete links[slug];
-  saveLinks(links);
+  saveLinks(links, slug);
   res.json({ success: true, message: `Kortlenke /${slug} ble slettet.` });
 });
 
@@ -472,7 +540,7 @@ app.get('/api/test-link/:slug', (req, res) => {
     // Inkrementer klikk
     item.clicks = (item.clicks || 0) + 1;
     item.lastClickedAt = new Date().toISOString();
-    saveLinks(links);
+    saveLinks(links, slug);
 
     return res.json({
       success: true,
@@ -521,7 +589,7 @@ app.get('/:slug', (req, res, next) => {
     // Inkrementer klikkteller
     item.clicks = (item.clicks || 0) + 1;
     item.lastClickedAt = new Date().toISOString();
-    saveLinks(links);
+    saveLinks(links, slug);
 
     // Videresend query parameters dersom de finnes i forespørselen (f.eks. ?ref=e-post)
     let targetUrl = item.url;
