@@ -204,9 +204,35 @@ function saveLinks(links, modifiedSlug = null) {
   return true;
 }
 
-// Serve static assets from public folder and current directory
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
+// Serve static assets from public folder with extensionless URL support
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR, {
+  extensions: ['html', 'htm'],
+  maxAge: '1h'
+}));
+
+// Admin route for the Link Engine Management Dashboard
+app.get(['/admin', '/admin/'], (req, res) => {
+  const adminFile = path.join(__dirname, 'admin.html');
+  if (fs.existsSync(adminFile)) {
+    return res.sendFile(adminFile);
+  }
+  res.sendFile(path.join(PUBLIC_DIR, 'admin', 'index.html'));
+});
+
+// Explicit shortcut routes
+app.get(['/portfolio', '/portfolio/'], (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'portfolio.html'));
+});
+
+app.get(['/custom-development', '/custom-dev'], (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'custom-development.html'));
+});
+
+app.get(['/studio', '/studio/'], (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'studio.html'));
+});
+
 
 // Health check
 app.get('/health', (req, res) => {
@@ -578,7 +604,12 @@ app.get('/:slug', (req, res, next) => {
   // Ignorer kun faktiske statiske ressurs-filendelser og systemruter
   const staticExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.gif', '.webp', '.css', '.js', '.map', '.json', '.txt', '.xml'];
   const isStaticFile = staticExtensions.some(ext => slug.endsWith(ext));
-  if (isStaticFile || ['api', 'health', 'public', 'assets', 'favicon.ico'].includes(slug)) {
+  const reservedSlugs = [
+    'api', 'health', 'public', 'assets', 'favicon.ico', 'admin', 
+    'studio', 'custom-development', 'custom-dev', 'portfolio', 
+    'apps', 'articles', 'sitemap.xml', 'robots.txt'
+  ];
+  if (isStaticFile || reservedSlugs.includes(slug)) {
     return next();
   }
 
