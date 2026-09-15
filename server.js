@@ -247,6 +247,31 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.STUDIO_PASSWORD || 'aiappsy2026';
+
+// API: Login & verify admin password
+app.post('/api/login', (req, res) => {
+  const { password } = req.body || {};
+  if (password === ADMIN_PASSWORD) {
+    res.setHeader('Set-Cookie', `admin_auth=${encodeURIComponent(ADMIN_PASSWORD)}; Path=/; Max-Age=2592000; SameSite=Lax`);
+    return res.json({ success: true, token: ADMIN_PASSWORD });
+  }
+  return res.status(401).json({ success: false, error: 'Feil admin-passord.' });
+});
+
+// API: Check auth status
+app.get('/api/auth-check', (req, res) => {
+  const customHeader = req.headers['x-admin-password'];
+  const authHeader = req.headers['authorization'];
+  let pwd = customHeader;
+  if (!pwd && authHeader) pwd = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (pwd === ADMIN_PASSWORD) {
+    return res.json({ success: true, authorized: true });
+  }
+  return res.status(401).json({ success: false, authorized: false, error: 'Ugyldig passord' });
+});
+
+
 // API: Hent alle lenker
 app.get('/api/links', (req, res) => {
   const links = loadLinks();
