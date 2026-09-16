@@ -97,15 +97,46 @@
     .faq-q { font-weight: 700; color: #ffffff; font-size: 1.05rem; margin-bottom: 0.5rem; }
     .faq-a { color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin: 0; }
   </style>
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var s = p || localStorage.getItem('aiappsy_lang') || localStorage.getItem('userLang');
+        if (!s) {
+          var n = (navigator.language || '').toLowerCase();
+          if (n.indexOf('no') === 0 || n.indexOf('nb') === 0 || n.indexOf('nn') === 0) s = 'no';
+        }
+        if (s === 'no') {
+          document.documentElement.className = (document.documentElement.className + ' lang-no').trim();
+          document.documentElement.setAttribute('lang', 'no');
+        } else {
+          document.documentElement.className = (document.documentElement.className + ' lang-en').trim();
+          document.documentElement.setAttribute('lang', 'en');
+        }
+      } catch(e) {}
+    })();
+  </script>
+  <style>
+    html.lang-en .lang-no, body.lang-en .lang-no { display: none !important; }
+    html.lang-no .lang-en, body.lang-no .lang-en { display: none !important; }
+    .lang-switch-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.22); color: #ffffff; padding: 0.4rem 0.8rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s ease; font-family: inherit; }
+    .lang-switch-btn:hover { background: rgba(99, 102, 241, 0.25); border-color: #818cf8; color: #ffffff; }
+  </style>
 </head>
 <body>
   <div class="article-wrap">
     <div class="article-nav">
-      <a href="index.html" class="nav-back">← Back to Articles Hub</a>
-      <a href="/" class="nav-back">AIAPPSY Home</a>
+      <a href="index.html" class="nav-back"><span class="lang-en">← Back to Articles Hub</span><span class="lang-no">← Tilbake til kunnskapsbasen</span></a>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <button class="lang-switch-btn" id="btn-lang-toggle" title="Bytt språk / Switch language">
+          <span class="lang-flag">🇳🇴</span>
+          <span class="lang-label">Norsk</span>
+        </button>
+        <a href="/" class="nav-back"><span class="lang-en">AIAPPSY Home</span><span class="lang-no">Forside</span></a>
+      </div>
     </div>
 
-    <header class="article-header">
+    <header class="article-header lang-en">
       <span class="article-tag">SaaS FinTech & Cost Control</span>
       <h1>The Enterprise SaaS Waste Audit: How Companies Leak 28% of Recurring Software Spend</h1>
       <div class="article-meta">
@@ -169,5 +200,6 @@
       <p>© 2026 AIAPPSY. Built on Google Cloud Run & Frontier AI Models.</p>
     </footer>
   </div>
+  <script src="/i18n.js"></script>
 </body>
 </html>

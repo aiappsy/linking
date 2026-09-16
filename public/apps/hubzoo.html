@@ -663,6 +663,32 @@
       }
     }
   </style>
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var s = p || localStorage.getItem('aiappsy_lang') || localStorage.getItem('userLang');
+        if (!s) {
+          var n = (navigator.language || '').toLowerCase();
+          if (n.indexOf('no') === 0 || n.indexOf('nb') === 0 || n.indexOf('nn') === 0) s = 'no';
+        }
+        if (s === 'no') {
+          document.documentElement.className = (document.documentElement.className + ' lang-no').trim();
+          document.documentElement.setAttribute('lang', 'no');
+        } else {
+          document.documentElement.className = (document.documentElement.className + ' lang-en').trim();
+          document.documentElement.setAttribute('lang', 'en');
+        }
+      } catch(e) {}
+    })();
+  </script>
+  <style>
+    /* Bilingual Toggle Rules */
+    html.lang-en .lang-no, body.lang-en .lang-no { display: none !important; }
+    html.lang-no .lang-en, body.lang-no .lang-en { display: none !important; }
+    .lang-switch-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.22); color: var(--text-heading, #ffffff); padding: 0.42rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; font-family: inherit; }
+    .lang-switch-btn:hover { background: rgba(99, 102, 241, 0.25); border-color: #818cf8; color: #ffffff; }
+  </style>
 </head>
 <body>
 
@@ -670,14 +696,19 @@
 
     <!-- Navigation Header -->
     <nav class="landing-nav" aria-label="Main Navigation">
-      <a href="https://aiappsy.com" class="landing-nav-brand">
+      <a href="/" class="landing-nav-brand">
         <div class="brand-logo-badge">⚡</div>
-        <span>saasapps<span>.ai.studio</span></span>
+        <span>aiappsy<span>.com</span></span>
       </a>
       <div class="landing-nav-actions">
-        <a href="https://aiappsy.com" class="btn-card-action btn-learn-more" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-          <span>← All 7 Platforms</span>
+        <a href="/" class="btn-card-action btn-learn-more" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+          <span class="lang-en">← All 7 Platforms</span>
+          <span class="lang-no">← Våre 7 apper</span>
         </a>
+        <button class="lang-switch-btn" id="btn-lang-toggle" title="Bytt språk / Switch language">
+          <span class="lang-flag">🇳🇴</span>
+          <span class="lang-label">Norsk</span>
+        </button>
         <a href="https://hubzoo.ai.studio" target="_blank" rel="noopener noreferrer" class="btn-card-action btn-launch-app" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
           <span>Launch Hubzoo</span>
           <span>↗</span>
@@ -698,30 +729,35 @@
     <header class="hero-landing">
       <div class="hero-badge-pill">
         <span>✨</span>
-        <span>Sales & Autonomous CRM · Active Production</span>
+        <span class="lang-en">Sales & Autonomous CRM · Active Production</span>
+        <span class="lang-no">Salg & Autonom CRM · Aktiv Produksjon</span>
       </div>
 
-      <h1>Your Autonomous Sales Partner: Never Lose a Deal to Slow Follow-Up</h1>
+      <h1 class="lang-en">The Relentless Sales Engine That Works Even When You're On The Job</h1>
+      <h1 class="lang-no">Salgsmaskinen som lander oppdragene mens du er ute på byggeplassen eller i kundemøter</h1>
 
-      <p class="hero-subtitle">
-        A hands-free digital sales agent and streamlined CRM built for busy SMBs, contractors, and consultants. It captures inbound leads, drafts professional quotes in under 60 seconds, and follows up across Email, WhatsApp, and SMS automatically.
-      </p>
+      <p class="hero-subtitle lang-en">A hands-free digital sales agent and streamlined CRM built for busy SMBs, contractors, and consultants. It captures inbound leads, drafts professional quotes in under 60 seconds, and follows up across Email, WhatsApp, and SMS automatically.</p>
+      <p class="hero-subtitle lang-no">En selvgående digital salgsassistent og strømlinjeformet CRM skreddersydd for håndverkere, konsulenter og travle SMB-bedrifter. Fanger innkommende henvendelser, sender proffe pristilbud på under 60 sekunder direkte fra mobilen, og følger opp kunden automatisk via e-post, WhatsApp og SMS.</p>
 
       <div class="hero-cta-group">
         <a href="https://hubzoo.ai.studio" target="_blank" rel="noopener noreferrer" class="btn-hero-primary">
-          <span>🚀 Launch Live Platform</span>
+          <span>🚀</span>
+          <span class="lang-en">Launch Live Platform</span>
+          <span class="lang-no">Åpne live-versjon</span>
           <span>↗</span>
         </a>
-        <a href="https://aiappsy.com/#inquiry" class="btn-hero-secondary">
-          <span>💼 Whitelabel & Buyout Licensing</span>
+        <a href="/portfolio.html" class="btn-hero-secondary">
+          <span>💼</span>
+          <span class="lang-en">Whitelabel Licensing</span>
+          <span class="lang-no">White-label lisensiering</span>
         </a>
       </div>
 
       <div class="hero-trust-bar">
-        <div class="hero-trust-item"><span class="check">✓</span> 100% Turnkey Whitelabel</div>
-        <div class="hero-trust-item"><span class="check">✓</span> Custom Domain & Hosting Included</div>
-        <div class="hero-trust-item"><span class="check">✓</span> Zero Technical Skill Needed</div>
-        <div class="hero-trust-item"><span class="check">✓</span> Up to 95% Gross Margins</div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">100% Turnkey Whitelabel</span><span class="lang-no">100 % Nøkkelferdig White-label</span></div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">Custom Domain Included</span><span class="lang-no">Eget domene & drift inkludert</span></div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">Zero Maintenance</span><span class="lang-no">Null teknisk vedlikehold</span></div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">High Margins</span><span class="lang-no">Høy fortjeneste</span></div>
       </div>
     </header>
 
@@ -733,7 +769,8 @@
       </div>
 
       <div class="story-card-box">
-        
+        <div class="lang-en">
+          
         <p class="lead-text">
           Most small and mid-sized business owners don't lose sales because their work isn't good enough—they lose them because they're simply too busy to reply in time. When a hot inquiry arrives on Monday and you only get around to emailing a quote on Thursday evening, that prospect has almost certainly hired your competitor.
         </p>
@@ -741,6 +778,17 @@
           <strong>Hubzoo fixes the broken speed-to-lead equation.</strong> Instead of forcing you to sit down at a laptop after a long workday, Hubzoo acts as your 24/7 digital sales assistant. It ingests new leads, prepares accurate proposals from your phone in under a minute, and nurtures every prospect with thoughtful, human-sounding follow-ups until the deal is won.
         </p>
       
+        </div>
+        <div class="lang-no">
+          
+        <p class="lead-text">
+          De fleste små og mellomstore håndverkere og konsulenter taper ikke oppdrag fordi jobben de gjør er dårlig — de taper dem rett og slett fordi de er for opptatt til å svare raskt nok. Når en kunde sender en forespørsel på mandag og du først får tid til å sette deg ned foran PC-en torsdag kveld, har kunden for lengst valgt en konkurrent.
+        </p>
+        <p>
+          <strong>Hubzoo snur responstiden til ditt største konkurransefortrinn.</strong> I stedet for å tvinge deg til kveldsarbeid etter en lang arbeidsdag, fungerer Hubzoo som din personlige, døgnåpne salgsassistent. Den fanger nye henvendelser, regner ut nøyaktige pristilbud fra mobilen på under ett minutt, og følger opp hver eneste kunde med høflige, naturlige påminnelser helt til avtalen er i boks.
+        </p>
+      
+        </div>
       </div>
     </section>
 
@@ -1087,7 +1135,7 @@
     <!-- FOOTER -->
     <footer class="landing-footer">
       <p style="margin-bottom: 0.75rem;">
-        <strong>saasapps.ai.studio</strong> — Turnkey AI SaaS Marketplace & Whitelabel Hub.
+        <strong>aiappsy.com</strong> — Turnkey AI SaaS Marketplace & Whitelabel Hub.
       </p>
       <p>
         <a href="https://aiappsy.com">All Platforms</a> · 
@@ -1102,5 +1150,6 @@
 
   </div>
 
+  <script src="/i18n.js"></script>
 </body>
 </html>

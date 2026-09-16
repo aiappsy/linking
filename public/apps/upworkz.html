@@ -663,6 +663,32 @@
       }
     }
   </style>
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var s = p || localStorage.getItem('aiappsy_lang') || localStorage.getItem('userLang');
+        if (!s) {
+          var n = (navigator.language || '').toLowerCase();
+          if (n.indexOf('no') === 0 || n.indexOf('nb') === 0 || n.indexOf('nn') === 0) s = 'no';
+        }
+        if (s === 'no') {
+          document.documentElement.className = (document.documentElement.className + ' lang-no').trim();
+          document.documentElement.setAttribute('lang', 'no');
+        } else {
+          document.documentElement.className = (document.documentElement.className + ' lang-en').trim();
+          document.documentElement.setAttribute('lang', 'en');
+        }
+      } catch(e) {}
+    })();
+  </script>
+  <style>
+    /* Bilingual Toggle Rules */
+    html.lang-en .lang-no, body.lang-en .lang-no { display: none !important; }
+    html.lang-no .lang-en, body.lang-no .lang-en { display: none !important; }
+    .lang-switch-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.22); color: var(--text-heading, #ffffff); padding: 0.42rem 0.85rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; font-family: inherit; }
+    .lang-switch-btn:hover { background: rgba(99, 102, 241, 0.25); border-color: #818cf8; color: #ffffff; }
+  </style>
 </head>
 <body>
 
@@ -670,14 +696,19 @@
 
     <!-- Navigation Header -->
     <nav class="landing-nav" aria-label="Main Navigation">
-      <a href="https://aiappsy.com" class="landing-nav-brand">
+      <a href="/" class="landing-nav-brand">
         <div class="brand-logo-badge">⚡</div>
-        <span>saasapps<span>.ai.studio</span></span>
+        <span>aiappsy<span>.com</span></span>
       </a>
       <div class="landing-nav-actions">
-        <a href="https://aiappsy.com" class="btn-card-action btn-learn-more" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-          <span>← All 7 Platforms</span>
+        <a href="/" class="btn-card-action btn-learn-more" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+          <span class="lang-en">← All 7 Platforms</span>
+          <span class="lang-no">← Våre 7 apper</span>
         </a>
+        <button class="lang-switch-btn" id="btn-lang-toggle" title="Bytt språk / Switch language">
+          <span class="lang-flag">🇳🇴</span>
+          <span class="lang-label">Norsk</span>
+        </button>
         <a href="https://upworkz.ai.studio" target="_blank" rel="noopener noreferrer" class="btn-card-action btn-launch-app" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
           <span>Launch Upworkz</span>
           <span>↗</span>
@@ -698,30 +729,35 @@
     <header class="hero-landing">
       <div class="hero-badge-pill">
         <span>✨</span>
-        <span>Freelance Deal Closer & Proposal Architect · Active Production</span>
+        <span class="lang-en">Freelance Deal Closer & Proposal Architect · Active Production</span>
+        <span class="lang-no">Frilans & Salgsarkitektur · Aktiv Produksjon</span>
       </div>
 
-      <h1>Autonomous Proposal Architect & Deal Closer: Land $100+/hr Contracts While You Sleep</h1>
+      <h1 class="lang-en">Stop Wasting 45 Minutes Writing Proposals Clients Never Even Open</h1>
+      <h1 class="lang-no">Slutt å sende standardiserte søknader som aldri blir åpnet — lær å vinne de store kontraktene</h1>
 
-      <p class="hero-subtitle">
-        An enterprise-grade client acquisition engine for freelance developers, consultants, and agencies. Converts Upwork job postings into winning 45-second proposals, monitors market feeds 24/7 with background cron alerts, identifies project gotchas before bidding, and generates Zoom interview battlecards.
-      </p>
+      <p class="hero-subtitle lang-en">An enterprise-grade client acquisition engine for freelance developers, consultants, and agencies. Converts Upwork job postings into winning 45-second proposals, monitors market feeds 24/7 with background cron alerts, identifies project gotchas before bidding, and generates Zoom interview battlecards.</p>
+      <p class="hero-subtitle lang-no">Et spesialisert AI-våpen for frilansere, konsulenter og digitale byråer som kjemper om lukrative oppdrag på Upwork og internasjonale markedsplasser. Analyserer oppdragsgiverens behov, avslører kontrollspørsmål, og konstruerer en uimotståelig 220-tegns visuell åpningskrok.</p>
 
       <div class="hero-cta-group">
         <a href="https://upworkz.ai.studio" target="_blank" rel="noopener noreferrer" class="btn-hero-primary">
-          <span>🚀 Launch Live Platform</span>
+          <span>🚀</span>
+          <span class="lang-en">Launch Live Platform</span>
+          <span class="lang-no">Åpne live-versjon</span>
           <span>↗</span>
         </a>
-        <a href="https://aiappsy.com/#inquiry" class="btn-hero-secondary">
-          <span>💼 Whitelabel & Buyout Licensing</span>
+        <a href="/portfolio.html" class="btn-hero-secondary">
+          <span>💼</span>
+          <span class="lang-en">Whitelabel Licensing</span>
+          <span class="lang-no">White-label lisensiering</span>
         </a>
       </div>
 
       <div class="hero-trust-bar">
-        <div class="hero-trust-item"><span class="check">✓</span> 100% Turnkey Whitelabel</div>
-        <div class="hero-trust-item"><span class="check">✓</span> Custom Domain & Hosting Included</div>
-        <div class="hero-trust-item"><span class="check">✓</span> Zero Technical Skill Needed</div>
-        <div class="hero-trust-item"><span class="check">✓</span> Up to 95% Gross Margins</div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">100% Turnkey Whitelabel</span><span class="lang-no">100 % Nøkkelferdig White-label</span></div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">Custom Domain Included</span><span class="lang-no">Eget domene & drift inkludert</span></div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">Zero Maintenance</span><span class="lang-no">Null teknisk vedlikehold</span></div>
+        <div class="hero-trust-item"><span class="check">✓</span> <span class="lang-en">High Margins</span><span class="lang-no">Høy fortjeneste</span></div>
       </div>
     </header>
 
@@ -733,7 +769,8 @@
       </div>
 
       <div class="story-card-box">
-        
+        <div class="lang-en">
+          
         <p class="lead-text">
           On platforms like Upwork, clients receive dozens of proposals within an hour of posting. Many freelancers make the mistake of opening with polite template greetings (which get cut off on mobile inbox previews), guessing at scope, and underpricing their bids.
         </p>
@@ -741,6 +778,17 @@
           <strong>Upworkz transforms freelancers and agencies into authoritative closers.</strong> In 45 seconds, Gemini 2.5 Flash deconstructs the job description, crafts a punchy opening hook designed for Upwork's 220-character inbox preview, structures a 3-phase technical work breakdown, flags hidden scope risks in a private report, and prepares a battlecard for the video interview.
         </p>
       
+        </div>
+        <div class="lang-no">
+          
+        <p class="lead-text">
+          På frilansplattformer mottar attraktive oppdrag gjerne 50 søknader i løpet av den første timen. Oppdragsgiveren ser kun de to første linjene (ca. 220 tegn) før de bestemmer seg for om de vil klikke seg inn på profilen din eller kaste søknaden i søpla. 95 % av frilansere kaster bort tid med generiske høflighetsfraser som garanterer at de blir oversett.
+        </p>
+        <p>
+          <strong>Upworkz er programmert med psykologien som kreves for å skille seg ut.</strong> Den skanner oppdragsbeskrivelsen med Gemini 2.5, avdekker kundens egentlige smertepunkter og hemmelige kontrollspørsmål, og bygger en skreddersydd åpningskrok som fanger oppmerksomheten umiddelbart.
+        </p>
+      
+        </div>
       </div>
     </section>
 
@@ -1095,7 +1143,7 @@
     <!-- FOOTER -->
     <footer class="landing-footer">
       <p style="margin-bottom: 0.75rem;">
-        <strong>saasapps.ai.studio</strong> — Turnkey AI SaaS Marketplace & Whitelabel Hub.
+        <strong>aiappsy.com</strong> — Turnkey AI SaaS Marketplace & Whitelabel Hub.
       </p>
       <p>
         <a href="https://aiappsy.com">All Platforms</a> · 
@@ -1110,5 +1158,6 @@
 
   </div>
 
+  <script src="/i18n.js"></script>
 </body>
 </html>

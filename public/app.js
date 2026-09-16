@@ -7,7 +7,7 @@
   'use strict';
 
   // State
-  let currentLang = localStorage.getItem('ai_showcase_lang') || 'en';
+  let currentLang = localStorage.getItem('aiappsy_lang') || localStorage.getItem('ai_showcase_lang') || localStorage.getItem('userLang') || 'en';
   let currentCategory = 'all';
   let activeAppId = null;
 
@@ -253,7 +253,9 @@
 
   function toggleLanguage() {
     currentLang = currentLang === 'en' ? 'no' : 'en';
+    localStorage.setItem('aiappsy_lang', currentLang);
     localStorage.setItem('ai_showcase_lang', currentLang);
+    localStorage.setItem('userLang', currentLang);
     applyLanguageUI();
     renderCards();
     if (window.updateAdvisorLanguage) {
