@@ -163,4 +163,40 @@
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
+  <url>
+    <loc>https://aiappsy.com/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aiappsy.com/privacy.html" />
+    <xhtml:link rel="alternate" hreflang="no" href="https://aiappsy.com/privacy.html?lang=no" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aiappsy.com/privacy.html" />
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://aiappsy.com/terms.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aiappsy.com/terms.html" />
+    <xhtml:link rel="alternate" hreflang="no" href="https://aiappsy.com/terms.html?lang=no" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aiappsy.com/terms.html" />
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://aiappsy.com/gdpr.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aiappsy.com/gdpr.html" />
+    <xhtml:link rel="alternate" hreflang="no" href="https://aiappsy.com/gdpr.html?lang=no" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aiappsy.com/gdpr.html" />
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://aiappsy.com/disclaimer.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aiappsy.com/disclaimer.html" />
+    <xhtml:link rel="alternate" hreflang="no" href="https://aiappsy.com/disclaimer.html?lang=no" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aiappsy.com/disclaimer.html" />
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
 </urlset>
