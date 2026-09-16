@@ -1183,6 +1183,7 @@
     </section>
 
     <!-- Section 5: Consultation / Contact Box -->
+    <div id="inquiry" style="position:relative; top:-20px;"></div>
     <section id="contact" class="contact-box">
       <span class="badge-pill" style="margin-bottom: 1rem;">
         <span class="lang-en">GET IN TOUCH</span>
@@ -1219,8 +1220,8 @@
             <span class="lang-no">Hva gjelder henvendelsen?</span>
           </label>
           <select id="inq-type" style="width: 100%; background: #0b101f; border: 1px solid #1e2942; border-radius: 8px; padding: 0.75rem 1rem; color: #ffffff; font-family: inherit; font-size: 0.92rem;">
-            <option value="Custom AI Engineering (Autonom Agent)">🛠️ Skreddersydd AI-utvikling & Autonome agenter</option>
             <option value="Lisensiere en av 7 plattformer">🚀 Lisensiere en av våre 7 eksisterende plattformer</option>
+            <option value="Custom AI Engineering (Autonom Agent)">🛠️ Skreddersydd AI-utvikling & Autonome agenter</option>
             <option value="White-label Partnerskap & 50+ maler">🏷️ White-label partnerskap & 50+ maler</option>
             <option value="ERP / Fagsystem Integrasjon (Fiken/Tripletex)">📊 Integrasjon mot Fiken, Tripletex eller Vipps</option>
             <option value="Annet / Generell forespørsel">💬 Annet / Uforpliktende samtale</option>
@@ -1260,12 +1261,13 @@
           var email = document.getElementById('inq-email').value;
           var ptype = document.getElementById('inq-type').value;
           var msg = document.getElementById('inq-msg').value;
+          var isNo = (document.documentElement.lang === 'no') || (document.documentElement.classList && document.documentElement.classList.contains('lang-no'));
 
           btn.disabled = true;
           btn.style.opacity = '0.6';
           fb.style.display = 'block';
           fb.style.color = '#818cf8';
-          fb.textContent = 'Sender henvendelse...';
+          fb.textContent = isNo ? 'Sender henvendelse...' : 'Sending inquiry...';
 
           try {
             var res = await fetch('/api/inquiry', {
@@ -1276,20 +1278,19 @@
             var data = await res.json();
             if (data.success) {
               fb.style.color = '#10b981';
-              fb.textContent = '✓ ' + (data.message || 'Takk! Din henvendelse er mottatt. Vi svarer innen 24 timer.');
+              var successMsg = isNo 
+                ? (data.message || 'Takk! Din henvendelse er mottatt. Vi svarer innen 24 timer.')
+                : 'Thank you! Your inquiry has been received. We will respond within 24 hours.';
+              fb.textContent = '✓ ' + successMsg;
               document.getElementById('contact-form').reset();
             } else {
               throw new Error(data.error || 'Feil ved sending');
             }
           } catch(err) {
             fb.style.color = '#f59e0b';
-            fb.textContent = 'Tips: Åpner e-postprogrammet ditt som reserve...';
+            fb.textContent = isNo ? 'Tips: Åpner e-postprogrammet ditt som reserve...' : 'Note: Opening your email client as fallback...';
             var mailSubject = encodeURIComponent('AIAPPSY Forespørsel: ' + ptype);
-            var mailBody = encodeURIComponent('Navn: ' + name + '
-E-post: ' + email + '
-Type: ' + ptype + '
-Melding:
-' + msg);
+            var mailBody = encodeURIComponent('Navn: ' + name + '\nE-post: ' + email + '\nType: ' + ptype + '\nMelding:\n' + msg);
             window.location.href = 'mailto:paljuritzen@gmail.com?subject=' + mailSubject + '&body=' + mailBody;
           } finally {
             btn.disabled = false;

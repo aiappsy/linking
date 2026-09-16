@@ -960,15 +960,31 @@
       const mailtoUrl = `mailto:paljuritzen@gmail.com?subject=${subject}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
 
       submitBtn.querySelector('span:last-child').textContent = s.submittingText;
-      
-      // Trigger the mail client
-      window.location.href = mailtoUrl;
+      submitBtn.disabled = true;
 
-      setTimeout(() => {
-        alert(s.alertSent);
-        submitBtn.querySelector('span:last-child').textContent = s.btnSubmitInquiry;
-        closeInquiryModal();
-      }, 700);
+      // Post to backend API so lead is stored in database / leads.json
+      fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          projectType: 'Whitelabel: ' + appName + ' (' + tierName + ')',
+          message: bodyLines.join('\n')
+        })
+      }).catch(function(err) {
+        console.warn('API inquiry fallback:', err);
+      }).finally(function() {
+        // Trigger the mail client as optional desktop backup
+        try { window.location.href = mailtoUrl; } catch(e) {}
+
+        setTimeout(function() {
+          alert(s.alertSent);
+          submitBtn.disabled = false;
+          submitBtn.querySelector('span:last-child').textContent = s.btnSubmitInquiry;
+          closeInquiryModal();
+        }, 500);
+      });
     });
 
     window.addEventListener('keydown', (e) => {
