@@ -265,6 +265,9 @@
 
   function applyLanguageUI() {
     const s = UI_STRINGS[currentLang];
+
+    document.documentElement.className = (document.documentElement.className.replace(/\blang-(no|en)\b/g, '') + ' lang-' + currentLang).trim();
+    document.documentElement.setAttribute('lang', currentLang);
     
     if (langFlag) langFlag.textContent = s.flag;
     if (langLabel) langLabel.textContent = s.switchLabel;
