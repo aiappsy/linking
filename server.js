@@ -353,26 +353,46 @@ app.get('/api/links', (req, res) => {
   });
 });
 
-// API: Opprett eller oppdater lenke
-app.post('/api/links', (req, res) => {
-  const { slug, url, domain } = req.body;
-  if (!slug || !url) {
-    return res.status(400).json({ success: false, error: 'Både kort-URL (slug) og måladresse (url) kreves.' });
+// API: Opprett eller oppdater lenke (støtter både /api/links og /api/shorten)
+function handleCreateOrShortenLink(req, res) {
+  const body = req.body || {};
+  let { slug, customSlug, url, targetUrl, domain } = body;
+  const inputUrl = (url || targetUrl || '').trim();
+  let cleanSlug = (slug || customSlug || '').trim().toLowerCase().replace(/^\/+/, '').replace(/[^a-z0-9-_]/g, '');
+
+  if (!inputUrl) {
+    return res.status(400).json({ success: false, error: 'Mål-adresse (url) kreves.' });
   }
 
-  const cleanSlug = slug.trim().toLowerCase().replace(/^\/+/, '');
-  let cleanUrl = url.trim();
+  let cleanUrl = inputUrl;
   if (!/^https?:\/\//i.test(cleanUrl)) {
     cleanUrl = 'https://' + cleanUrl;
   }
 
-  const reserved = ['api', 'health', 'public', 'assets', 'favicon.ico', 'settings', 'admin', 'domains'];
-  if (reserved.includes(cleanSlug)) {
-    return res.status(400).json({ success: false, error: `Slug "${cleanSlug}" er en reservert systemsti.` });
+  const links = loadLinks();
+
+  // Generer tilfeldig 5-tegns slug dersom ingen er oppgitt
+  if (!cleanSlug) {
+    const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+    do {
+      cleanSlug = '';
+      for (let i = 0; i < 5; i++) {
+        cleanSlug += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+    } while (links[cleanSlug]);
   }
 
-  const links = loadLinks();
-  const settings = loadSettings();
+  const reserved = [
+    'api', 'health', 'public', 'assets', 'favicon.ico', 'settings', 'admin', 
+    'domains', 'studio', 'custom-development', 'custom-development.html', 
+    'portfolio', 'portfolio.html', 'apps', 'articles', 'sitemap.xml', 'robots.txt',
+    'generator', 'generator.html'
+  ];
+  if (reserved.includes(cleanSlug)) {
+    return res.status(400).json({ success: false, error: `Kortnavnet "${cleanSlug}" er reservert av systemet.` });
+  }
+
+  const settings = typeof loadSettings === 'function' ? loadSettings() : { activeDomain: 'aiappsy.com' };
   const selectedDomain = domain || settings.activeDomain || 'aiappsy.com';
 
   const isNew = !links[cleanSlug];
@@ -385,13 +405,24 @@ app.post('/api/links', (req, res) => {
   };
 
   saveLinks(links, cleanSlug);
-  res.json({
+
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const host = req.get('host') || selectedDomain || 'aiappsy.com';
+  const shortUrl = `${protocol}://${host}/${cleanSlug}`;
+
+  return res.json({
     success: true,
     message: isNew ? `Kortlenke /${cleanSlug} opprettet!` : `Kortlenke /${cleanSlug} oppdatert!`,
     slug: cleanSlug,
+    shortUrl: shortUrl,
+    destination: cleanUrl,
+    clicks: links[cleanSlug].clicks,
     item: links[cleanSlug]
   });
-});
+}
+
+app.post('/api/links', handleCreateOrShortenLink);
+app.post('/api/shorten', handleCreateOrShortenLink);
 
 // API: Oppdater spesifikk lenke
 app.put('/api/links/:slug', (req, res) => {
