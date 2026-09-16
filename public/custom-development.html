@@ -514,27 +514,116 @@
     </section>
 
     <!-- SECTION: INQUIRY CTA -->
-    <section class="inquiry-cta-box">
+    <section class="inquiry-cta-box" id="contact">
       <h2 class="lang-en">Have a Specific Software Vision in Mind?</h2>
       <h2 class="lang-no">Har du en konkret idé eller et forretningsbehov?</h2>
-      <p class="lang-en">
-        Whether you want to build a bespoke AI sales copilot, an automated scraping intelligence agent, or a generative media suite, we can scope and build your solution rapidly.
-      </p>
-      <p class="lang-no">
-        Enten du vil bygge en automatisert salgsassistent, en intelligent datainnhentingsagent eller et skreddersydd videoverktøy: Vi gir deg rask teknisk vurdering og fast prisramme.
-      </p>
-      <a href="mailto:paljuritzen@gmail.com?subject=Custom%20AI%20Project%20Inquiry%20from%20AIAppsy" class="btn-main-cta" style="background: #0284c7; padding: 1rem 2.2rem; font-size: 1.05rem;">
-        <span>✉️</span>
-        <span class="lang-en">Email Your Project Requirements</span>
-        <span class="lang-no">Send oss dine prosjektønsker</span>
-        <span>→</span>
-      </a>
-      <p style="margin-top: 1.25rem; font-size: 0.85rem; color: #94a3b8;" class="lang-en">
-        Direct responses within 24 hours with architectural feasibility and transparent price ranges.
-      </p>
-      <p style="margin-top: 1.25rem; font-size: 0.85rem; color: #94a3b8;" class="lang-no">
-        Vi svarer innen 24 timer med konkrete arkitekturforslag og et transparent prisoverslag.
-      </p>
+      <p class="lang-en">Whether you want to build a bespoke AI sales copilot, an automated scraping intelligence agent, or a generative media suite, let's connect.</p>
+      <p class="lang-no">Enten du vil bygge en automatisert salgsassistent, en intelligent datainnhentingsagent eller et skreddersydd videoverktøy: Vi gir deg rask teknisk vurdering og fast prisramme.</p>
+
+      <!-- Interactive Lead Capture Form -->
+      <form id="contact-form" class="interactive-contact-form" onsubmit="submitInquiryForm(event)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; text-align: left;">
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+              <span class="lang-en">Your Name</span>
+              <span class="lang-no">Ditt navn</span>
+            </label>
+            <input type="text" id="inq-name" required placeholder="f.eks. Ola Nordmann" style="width: 100%; background: #0b101f; border: 1px solid #1e2942; border-radius: 8px; padding: 0.75rem 1rem; color: #ffffff; font-family: inherit; font-size: 0.92rem;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+              <span class="lang-en">Work Email</span>
+              <span class="lang-no">Arbeids-e-post</span>
+            </label>
+            <input type="email" id="inq-email" required placeholder="ola@bedrift.no" style="width: 100%; background: #0b101f; border: 1px solid #1e2942; border-radius: 8px; padding: 0.75rem 1rem; color: #ffffff; font-family: inherit; font-size: 0.92rem;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem; text-align: left;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+            <span class="lang-en">Project Type / Interest</span>
+            <span class="lang-no">Hva gjelder henvendelsen?</span>
+          </label>
+          <select id="inq-type" style="width: 100%; background: #0b101f; border: 1px solid #1e2942; border-radius: 8px; padding: 0.75rem 1rem; color: #ffffff; font-family: inherit; font-size: 0.92rem;">
+            <option value="Custom AI Engineering (Autonom Agent)">🛠️ Skreddersydd AI-utvikling & Autonome agenter</option>
+            <option value="Lisensiere en av 7 plattformer">🚀 Lisensiere en av våre 7 eksisterende plattformer</option>
+            <option value="White-label Partnerskap & 50+ maler">🏷️ White-label partnerskap & 50+ maler</option>
+            <option value="ERP / Fagsystem Integrasjon (Fiken/Tripletex)">📊 Integrasjon mot Fiken, Tripletex eller Vipps</option>
+            <option value="Annet / Generell forespørsel">💬 Annet / Uforpliktende samtale</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 1.5rem; text-align: left;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 0.4rem;">
+            <span class="lang-en">Project Scope / Details (Optional)</span>
+            <span class="lang-no">Kort om prosjektet eller behovet (valgfritt)</span>
+          </label>
+          <textarea id="inq-msg" rows="3" placeholder="Fortell litt om hva du ønsker å oppnå, tidsramme eller spesielle krav..." style="width: 100%; background: #0b101f; border: 1px solid #1e2942; border-radius: 8px; padding: 0.75rem 1rem; color: #ffffff; font-family: inherit; font-size: 0.92rem; resize: vertical;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+          <button type="submit" id="btn-inq-submit" class="btn-primary-hero" style="border: none; cursor: pointer;">
+            <span>🚀</span>
+            <span class="lang-en">Send Project Inquiry</span>
+            <span class="lang-no">Send uforpliktende forespørsel</span>
+          </button>
+          <a href="mailto:paljuritzen@gmail.com?subject=AIAPPSY%20Direkte%20Kontakt" class="btn-secondary-hero">
+            <span>✉️</span>
+            <span class="lang-en">Or Email Direct: paljuritzen@gmail.com</span>
+            <span class="lang-no">Eller e-post: paljuritzen@gmail.com</span>
+          </a>
+        </div>
+
+        <div id="inq-feedback" style="margin-top: 1rem; font-size: 0.95rem; font-weight: 700; display: none;"></div>
+      </form>
+
+      <script>
+        async function submitInquiryForm(e) {
+          e.preventDefault();
+          var btn = document.getElementById('btn-inq-submit');
+          var fb = document.getElementById('inq-feedback');
+          var name = document.getElementById('inq-name').value;
+          var email = document.getElementById('inq-email').value;
+          var ptype = document.getElementById('inq-type').value;
+          var msg = document.getElementById('inq-msg').value;
+
+          btn.disabled = true;
+          btn.style.opacity = '0.6';
+          fb.style.display = 'block';
+          fb.style.color = '#818cf8';
+          fb.textContent = 'Sender henvendelse...';
+
+          try {
+            var res = await fetch('/api/inquiry', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: name, email: email, projectType: ptype, message: msg })
+            });
+            var data = await res.json();
+            if (data.success) {
+              fb.style.color = '#10b981';
+              fb.textContent = '✓ ' + (data.message || 'Takk! Din henvendelse er mottatt. Vi svarer innen 24 timer.');
+              document.getElementById('contact-form').reset();
+            } else {
+              throw new Error(data.error || 'Feil ved sending');
+            }
+          } catch(err) {
+            fb.style.color = '#f59e0b';
+            fb.textContent = 'Tips: Åpner e-postprogrammet ditt som reserve...';
+            var mailSubject = encodeURIComponent('AIAPPSY Forespørsel: ' + ptype);
+            var mailBody = encodeURIComponent('Navn: ' + name + '
+E-post: ' + email + '
+Type: ' + ptype + '
+Melding:
+' + msg);
+            window.location.href = 'mailto:paljuritzen@gmail.com?subject=' + mailSubject + '&body=' + mailBody;
+          } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+          }
+        }
+      </script>
+
     </section>
 
     <!-- SECTION: FREQUENTLY ASKED QUESTIONS -->
