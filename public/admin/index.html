@@ -3,726 +3,1286 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AIAPPSY — Link Engine & Redirect Manager</title>
+  <title>AIAPPSY Unified Control Center | Admin & Studio Hub</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f19;
-      --card-bg: #151d30;
-      --border: #222f4c;
-      --text: #f1f5f9;
+      --bg: #07090e;
+      --bg-surface: #0f172a;
+      --bg-card: #131d35;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #6366f1;
+      --text: #f8fafc;
       --text-muted: #94a3b8;
       --primary: #6366f1;
       --primary-hover: #4f46e5;
       --accent: #10b981;
-      --danger: #ef4444;
+      --accent-warn: #f59e0b;
+      --accent-danger: #ef4444;
+      --radius: 12px;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem;
-    }
-
-    .top-nav {
-      width: 100%;
-      max-width: 860px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .nav-left a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: color 0.15s;
-    }
-    .nav-left a:hover { color: #ffffff; }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .btn-logout {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #fca5a5;
-      padding: 0.45rem 0.9rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-logout:hover {
-      background: rgba(239, 68, 68, 0.3);
-      color: #ffffff;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 860px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #a5b4fc;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.3rem 0.8rem;
-      border-radius: 999px;
-      margin-bottom: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.5rem;
-    }
-
-    h1 span {
-      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    header p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      padding: 1.75rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      margin-bottom: 2rem;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    @media (max-width: 640px) {
-      .form-row { flex-direction: column; }
-    }
-
-    .input-group {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    input {
-      background: #0d1322;
-      border: 1px solid var(--border);
-      color: white;
-      padding: 0.85rem 1rem;
-      border-radius: 0.6rem;
-      font-size: 0.92rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-    }
-
-    .slug-prefix-wrap {
-      display: flex;
-      align-items: center;
-      background: #0d1322;
-      border: 1px solid var(--border);
-      border-radius: 0.6rem;
-      overflow: hidden;
-    }
-
-    .slug-prefix-wrap span {
-      background: #182238;
-      color: var(--text-muted);
-      padding: 0.85rem 0.75rem;
-      font-size: 0.85rem;
-      font-family: 'JetBrains Mono', monospace;
-      border-right: 1px solid var(--border);
-    }
-
-    .slug-prefix-wrap input {
-      border: none;
-      border-radius: 0;
-      flex: 1;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    button.btn-primary {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.85rem 1.6rem;
-      border-radius: 0.6rem;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: background 0.2s;
-      width: 100%;
-    }
-
-    button.btn-primary:hover {
-      background: var(--primary-hover);
-    }
-
-    .result-banner {
-      margin-top: 1.25rem;
-      padding: 1.2rem;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 0.6rem;
-      display: none;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .result-link {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--accent);
-      text-decoration: none;
-      word-break: break-all;
-    }
-
-    .result-link:hover {
-      text-decoration: underline;
-    }
-
-    .btn-copy {
-      background: #10b981;
-      color: #064e3b;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 0.4rem;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .btn-copy:hover {
-      background: #34d399;
-    }
-
-    .table-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.25rem;
-    }
-
-    .table-header h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-    }
-
-    .table-responsive {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th {
-      color: var(--text-muted);
-      font-weight: 600;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    td {
-      padding: 1rem;
-      border-bottom: 1px solid rgba(34, 47, 76, 0.4);
-      vertical-align: middle;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .slug-cell {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      color: #818cf8;
-    }
-
-    .slug-cell a {
-      color: #818cf8;
-      text-decoration: none;
-    }
-
-    .slug-cell a:hover {
-      text-decoration: underline;
-    }
-
-    .dest-cell {
-      max-width: 320px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-    }
-
-    .clicks-badge {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 0.25rem 0.65rem;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 0.8rem;
-      color: #e2e8f0;
-    }
-
-    .btn-del {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 1rem;
-      transition: color 0.2s;
-    }
-
-    .btn-del:hover {
-      color: var(--danger);
     }
 
     /* Auth Overlay */
     #auth-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(11, 15, 25, 0.95);
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      padding: 1.5rem;
+      position: fixed; inset: 0; background: rgba(5, 8, 16, 0.94);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 99999; padding: 20px;
+    }
+    .auth-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 18px; padding: 40px 32px;
+      max-width: 420px; width: 100%; text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 30px rgba(99, 102, 241, 0.15);
+    }
+    .auth-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.08em; padding: 4px 12px; border-radius: 9999px;
+      background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3);
+      margin-bottom: 20px;
     }
 
-    .login-box {
-      background: #131d35;
-      border: 1px solid #1e293b;
-      border-radius: 1rem;
-      padding: 2.25rem;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    /* Top Navbar */
+    .admin-navbar {
+      background: #0b1120;
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.75rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 1000;
+    }
+    .brand-group {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit;
+    }
+    .brand-icon {
+      width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; box-shadow: 0 0 16px rgba(99,102,241,0.4);
+    }
+    .brand-name {
+      font-size: 1.15rem; font-weight: 900; letter-spacing: -0.02em;
+    }
+    .brand-name span { color: #6366f1; }
+    .nav-status-badge {
+      font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+      background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .login-box h2 {
-      font-size: 1.4rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
+    /* Tab Navigation */
+    .admin-nav-tabs {
+      background: #0d1527;
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.75rem;
+      display: flex; gap: 0.5rem; overflow-x: auto;
+    }
+    .nav-tab {
+      padding: 1rem 1.25rem;
+      background: transparent; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-muted); font-weight: 600; font-size: 0.92rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+      white-space: nowrap; transition: all 0.15s ease;
+    }
+    .nav-tab:hover { color: #ffffff; }
+    .nav-tab.active {
+      color: #818cf8; border-bottom-color: #6366f1;
+    }
+    .tab-badge {
+      font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 999px;
+      background: rgba(255,255,255,0.08); color: var(--text-muted);
+    }
+    .nav-tab.active .tab-badge {
+      background: rgba(99,102,241,0.25); color: #a5b4fc;
     }
 
-    .login-box p {
-      color: var(--text-muted);
-      font-size: 0.88rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.5;
+    /* Main Content Area */
+    .admin-container {
+      max-width: 1400px; width: 100%; margin: 0 auto;
+      padding: 2rem 1.75rem; flex: 1;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Common Card / Form Styles */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem; margin-bottom: 1.5rem;
+    }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 10px;
+    }
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    @media (max-width: 1024px) {
+      .grid-2 { grid-template-columns: 1fr; }
     }
 
-    .login-error {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #f87171;
-      padding: 0.6rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
-      display: none;
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block; font-size: 0.82rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 0.5rem;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; background: #090e1a; border: 1px solid rgba(255,255,255,0.1);
+      color: #ffffff; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.95rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+    }
+    .form-textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+
+    /* Buttons */
+    .btn {
+      padding: 0.7rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; border: 1px solid transparent; transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #ffffff;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669); color: #ffffff;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06); color: #f8fafc; border-color: rgba(255,255,255,0.1);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #ffffff; }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover { background: #ef4444; color: #ffffff; }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto; width: 100%; border-radius: 8px; border: 1px solid var(--border);
+    }
+    table {
+      width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;
+    }
+    th {
+      background: #090e1a; padding: 0.85rem 1rem; font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.9rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Live Toggle Switch */
+    .switch-container {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .switch {
+      position: relative; display: inline-block; width: 48px; height: 26px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #334155; transition: 0.3s; border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px;
+      left: 4px; bottom: 4px; background: white; transition: 0.3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background: #10b981; }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    /* Toast */
+    .admin-toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999999;
+      background: #0f172a; color: #ffffff; border: 1px solid rgba(255,255,255,0.15);
+      border-left: 4px solid #10b981; border-radius: 8px; padding: 14px 20px;
+      display: none; align-items: center; gap: 12px; font-weight: 600; font-size: 0.9rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    /* Modal Live Preview in Admin */
+    .preview-canvas {
+      background: radial-gradient(circle at top, #1e293b, #090e1a);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius);
+      padding: 40px 20px; display: flex; align-items: center; justify-content: center;
+      min-height: 440px; position: relative; overflow: hidden;
+    }
+    .preview-modal-box {
+      background: #0f172a; border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 18px; padding: 32px 26px; max-width: 440px; width: 100%;
+      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      position: relative; transition: all 0.2s ease;
+    }
+
+    /* Rich text editor controls */
+    .editor-toolbar {
+      display: flex; gap: 6px; flex-wrap: wrap; background: #090e1a;
+      border: 1px solid rgba(255,255,255,0.1); border-bottom: none;
+      padding: 8px; border-radius: 8px 8px 0 0;
+    }
+    .tool-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text); padding: 4px 10px; border-radius: 4px; font-size: 0.8rem;
+      font-weight: 700; cursor: pointer;
+    }
+    .tool-btn:hover { background: rgba(255,255,255,0.15); }
+    .rich-canvas {
+      min-height: 280px; background: #090e1a; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0 0 8px 8px; padding: 16px; color: #ffffff; outline: none;
+      line-height: 1.7; font-size: 0.95rem; overflow-y: auto;
+    }
+    .rich-canvas p { margin-bottom: 1rem; }
+    .rich-canvas h2 { font-size: 1.3rem; margin: 1.5rem 0 0.75rem 0; color: #6366f1; }
+    .rich-canvas blockquote {
+      border-left: 3px solid #6366f1; padding-left: 1rem; margin: 1rem 0; color: #94a3b8;
     }
   </style>
-  <!-- Favicon & Social Share Cards -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <meta property="og:image" content="https://aiappsy.com/og-image.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://aiappsy.com/og-image.png">
 </head>
 <body>
 
-  <!-- Auth Gate Overlay -->
+  <!-- AUTH OVERLAY -->
   <div id="auth-overlay">
-    <div class="login-box">
-      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
-      <h2>AIAPPSY Link Manager</h2>
-      <p>Dette kontrollpanelet er beskyttet. Skriv inn admin-passord for å administrere kortlenker.</p>
-      
-      <div class="login-error" id="login-error">Feil passord. Vennligst prøv igjen.</div>
-
-      <form id="login-form">
-        <div class="input-group" style="margin-bottom: 1rem;">
-          <input type="password" id="admin-pwd-input" placeholder="Admin-passord..." required autofocus>
-        </div>
-        <button type="submit" class="btn-primary">
-          <span>Lås opp kontrollpanel →</span>
-        </button>
+    <div class="auth-card">
+      <div class="auth-badge">⚡ Sikkerhetsverifisering</div>
+      <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 8px;">AIAPPSY Admin Hub</h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px;">
+        Skriv inn administratorpassord for tilgang til lenker, kampanjer, artikler og leads.
+      </p>
+      <form id="admin-login-form">
+        <input type="password" id="admin-pwd-input" class="form-input" placeholder="Admin Passord..." required autocomplete="current-password" style="text-align: center; font-size: 1.1rem; margin-bottom: 16px;" autofocus />
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Lås opp kontrollpanel →</button>
       </form>
+      <div id="auth-err-msg" style="display: none; color: var(--accent-danger); font-size: 0.85rem; font-weight: 700; margin-top: 14px;"></div>
     </div>
   </div>
 
-  <!-- Top Navigation -->
-  <div class="top-nav">
-    <div class="nav-left">
-      <a href="/">← Tilbake til AIAPPSY Hovedside</a>
+  <!-- TOP NAVBAR -->
+  <header class="admin-navbar">
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <a href="/" class="brand-group">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-name">aiappsy<span>.com</span> <small style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">/ admin</small></div>
+      </a>
+      <span class="nav-status-badge">🟢 Cloud Run Online</span>
     </div>
-    <div class="nav-right">
-      <a href="/studio" style="color: var(--text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600;">Artikkel Studio</a>
-      <button class="btn-logout" id="btn-logout">Logg ut</button>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/" target="_blank" class="btn btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.82rem;">
+        <span>🌐</span> Se Forside
+      </a>
+      <a href="/generator.html" target="_blank" class="btn btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.82rem;">
+        <span>⚡</span> Kundegenerator
+      </a>
+      <button id="btn-admin-logout" class="btn btn-danger" style="padding: 0.45rem 0.9rem; font-size: 0.82rem;">
+        Logg ut
+      </button>
     </div>
-  </div>
+  </header>
 
-  <div class="container">
-    <header>
-      <div class="badge">⚡ Sikker URL-Forkorter & Omdirigering</div>
-      <h1><span>AIAPPSY</span> Link Engine</h1>
-      <p>Lag lynraske kortlenker for dine Cloud Run-apper og eksterne tjenester.</p>
-    </header>
+  <!-- MASTER TAB NAVIGATION -->
+  <nav class="admin-nav-tabs" aria-label="Admin Tabs">
+    <button class="nav-tab active" data-tab="links">
+      <span>🔗</span> Kortlenker & Ruting
+      <span class="tab-badge" id="badge-link-count">0</span>
+    </button>
+    <button class="nav-tab" data-tab="campaigns">
+      <span>🎯</span> Kampanjer & Pop-ups
+      <span class="tab-badge" id="badge-camp-status">Av</span>
+    </button>
+    <button class="nav-tab" data-tab="articles">
+      <span>📰</span> Artikler & SEO Studio
+    </button>
+    <button class="nav-tab" data-tab="proposals">
+      <span>💼</span> Tilbudsbygger & PDF
+    </button>
+    <button class="nav-tab" data-tab="leads">
+      <span>📥</span> Leads & Henvendelser
+      <span class="tab-badge" id="badge-lead-count">0</span>
+    </button>
+  </nav>
 
-    <!-- Create Card -->
-    <div class="card">
-      <form id="shorten-form">
-        <div class="form-row">
-          <div class="input-group" style="flex: 2;">
-            <label for="target-url">Mål-adresse (Full URL til app eller ekstern side)</label>
-            <input type="text" id="target-url" placeholder="https://saasapps-ai-studio-910579541086.us-west1.run.app" required>
+  <!-- MAIN CONTAINER -->
+  <main class="admin-container">
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: KORTLENKER (LINK ENGINE) -->
+    <!-- ================================================================= -->
+    <div class="tab-pane active" id="pane-links">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⚡</span> Opprett ny kortlenke / omdirigering
+          </div>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">HTTP 302 Dual Redirection Engine</span>
+        </div>
+
+        <form id="link-create-form">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Mål-adresse (Full URL til app eller ekstern side)</label>
+              <input type="url" id="link-target-url" class="form-input" placeholder="https://dinside.ai.studio" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kortnavn / Slug (Valgfritt)</label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--text-muted); font-family: var(--font-mono); font-weight: 700;">/</span>
+                <input type="text" id="link-custom-slug" class="form-input" placeholder="f.eks. atlas, kampanje (genereres om tom)" />
+              </div>
+            </div>
           </div>
 
-          <div class="input-group" style="flex: 1.2;">
-            <label for="custom-slug">Kortnavn / Slug (valgfritt)</label>
-            <div class="slug-prefix-wrap">
-              <span>/</span>
-              <input type="text" id="custom-slug" placeholder="ny-app">
+          <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+            <button type="submit" id="btn-submit-link" class="btn btn-primary">
+              <span>⚡</span> Opprett Kortlenke
+            </button>
+          </div>
+        </form>
+
+        <!-- Result Box -->
+        <div id="link-result-box" style="display: none; margin-top: 1.5rem; background: #090e1a; border: 1px solid var(--accent); border-radius: 8px; padding: 14px 18px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: var(--accent); font-size: 1.2rem;">✓</span>
+            <div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;">Kortlenke er klar og aktivert:</div>
+              <a id="link-result-anchor" href="#" target="_blank" style="color: #38bdf8; font-family: var(--font-mono); font-weight: 700; text-decoration: none;"></a>
+            </div>
+          </div>
+          <button id="btn-copy-link-result" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
+            Kopier lenke
+          </button>
+        </div>
+      </div>
+
+      <!-- Links Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📊</span> Aktive Kortlenker & Klikkstatistikk
+          </div>
+          <button id="btn-refresh-links" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
+            Oppdater tabell ↻
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 180px;">Kortlenke</th>
+                <th>Mål-adresse</th>
+                <th style="width: 120px;">Klikk</th>
+                <th style="width: 140px;">Handling</th>
+              </tr>
+            </thead>
+            <tbody id="links-tbody">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Laster inn kortlenker...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: KAMPANJER & POP-UPS (LIVE STUDIO) -->
+    <!-- ================================================================= -->
+    <div class="tab-pane" id="pane-campaigns">
+      <div class="card" style="border-left: 4px solid var(--primary);">
+        <div class="card-header">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 900; margin-bottom: 4px;">Dynamisk Kampanjestyring</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">
+              Konfigurer og aktiver pop-up kampanjer i sanntid. Når bryteren står på <strong>AKTIV</strong>, vises denne modalen automatisk på <strong>aiappsy.com</strong>.
+            </p>
+          </div>
+
+          <!-- Live Toggle -->
+          <div class="switch-container" style="background: #090e1a; padding: 8px 16px; border-radius: 9999px; border: 1px solid var(--border);">
+            <span id="camp-live-label" style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted);">INAKTIV</span>
+            <label class="switch">
+              <input type="checkbox" id="camp-active-toggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Configuration Form -->
+        <div class="card">
+          <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1.25rem;">🛠️ Tilpass Innhold & Trigger</h3>
+
+          <div class="form-group">
+            <label class="form-label">Kampanjetype / Mal</label>
+            <select id="camp-template-select" class="form-select">
+              <option value="custom">✏️ Egendefinert kampanje</option>
+              <option value="lead-magnet" selected>🎁 Lead Magnet (Gratis Sjekkliste/Guide)</option>
+              <option value="consultation">📞 Gratis AI-Konsultasjon (30 min)</option>
+              <option value="custom-audit">🔍 Gratis Nettside & AI-Audit</option>
+              <option value="discount">🏷️ 20% Rabatt på Første AI-Agent</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Etikett-tekst (Øverste pille)</label>
+            <input type="text" id="camp-badge-input" class="form-input" value="⚡ EKSKLUSIVT TILBUD" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hovedoverskrift</label>
+            <input type="text" id="camp-title-input" class="form-input" value="Vil du automatisere kundeservicen din med AI?" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Undertekst / Beskrivelse</label>
+            <textarea id="camp-subtitle-input" class="form-textarea" style="min-height: 80px;">Få vår sjekkliste over hvordan ledende bedrifter sparer 20 timer ukentlig med autonome agenter.</textarea>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Visnings-trigger</label>
+              <select id="camp-trigger-select" class="form-select">
+                <option value="exit-intent" selected>Exit-Intent (Når mus forlater siden)</option>
+                <option value="delay">Tidsforsinkelse (5 sekunder)</option>
+                <option value="scroll">Rulledybde (50% av siden)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fargetema</label>
+              <select id="camp-color-select" class="form-select">
+                <option value="#6366f1" selected>Indigo Elektrisk (#6366f1)</option>
+                <option value="#10b981">Smaragdgrønn (#10b981)</option>
+                <option value="#38bdf8">Himmelblå (#38bdf8)</option>
+                <option value="#ec4899">Rose Magenta (#ec4899)</option>
+                <option value="#8b5cf6">Dyp Lilla (#8b5cf6)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">CTA-knappetekst</label>
+              <input type="text" id="camp-cta-text-input" class="form-input" value="Send meg guiden nå →" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Input Placeholder</label>
+              <input type="text" id="camp-placeholder-input" class="form-input" value="Din e-postadresse..." />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 1rem;">
+            <button type="button" id="btn-save-campaign" class="btn btn-primary" style="flex: 1;">
+              <span>💾</span> Lagre & Oppdater Kampanje
+            </button>
+            <button type="button" id="btn-copy-embed" class="btn btn-secondary">
+              <span>📋</span> Embed-kode
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Visual Preview -->
+        <div class="card">
+          <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1.25rem;">👁️ Levende Forhåndsvisning i Sanntid</h3>
+          <div class="preview-canvas">
+            <div class="preview-modal-box" id="pv-box">
+              <div id="pv-pill" style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 12px; border-radius: 9999px; background: rgba(99,102,241,0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.3); margin-bottom: 14px;">
+                ⚡ EKSKLUSIVT TILBUD
+              </div>
+              <h3 id="pv-title" style="font-size: 20px; font-weight: 800; line-height: 1.3; margin-bottom: 10px; color: #ffffff;">
+                Vil du automatisere kundeservicen din med AI?
+              </h3>
+              <p id="pv-desc" style="font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px;">
+                Få vår sjekkliste over hvordan ledende bedrifter sparer 20 timer ukentlig med autonome agenter.
+              </p>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="email" id="pv-input" class="form-input" placeholder="Din e-postadresse..." style="text-align: center;" disabled />
+                <button type="button" id="pv-btn" class="btn" style="background: #6366f1; color: white; width: 100%;">
+                  Send meg guiden nå →
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <button type="submit" class="btn-primary">
-          <span>⚡</span>
-          <span>Opprett Kortlenke</span>
-        </button>
-      </form>
-
-      <div class="result-banner" id="result-box">
-        <div>
-          <span style="font-size: 0.75rem; color: #a7f3d0; text-transform: uppercase; font-weight: 700; display: block;">Din nye kortlenke er klar:</span>
-          <a href="#" target="_blank" class="result-link" id="result-link"></a>
+    <!-- ================================================================= -->
+    <!-- TAB 3: ARTIKLER & SEO STUDIO -->
+    <!-- ================================================================= -->
+    <div class="tab-pane" id="pane-articles">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 900; margin-bottom: 4px;">AIAPPSY SEO & Article Studio</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">
+              Skriv, optimaliser og publiser artikler direkte til <code>/articles/[slug].html</code> med automatisk sitemap-oppdatering og Google-ping.
+            </p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btn-load-art-preset" class="btn btn-secondary" style="font-size: 0.82rem;">
+              📥 Last Mal
+            </button>
+            <button type="button" id="btn-publish-art" class="btn btn-success" style="font-size: 0.82rem;">
+              🚀 Publiser Live Nå
+            </button>
+          </div>
         </div>
-        <button class="btn-copy" id="btn-copy">Kopier Lenke</button>
+
+        <div class="grid-2">
+          <!-- Metadata Fields -->
+          <div>
+            <div class="form-group">
+              <label class="form-label">Artikkeltittel</label>
+              <input type="text" id="art-title" class="form-input" placeholder="f.eks. Hvordan AI-agenter halverer responstiden i kundeservice" />
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">URL Slug</label>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: var(--text-muted); font-size: 0.85rem;">/articles/</span>
+                  <input type="text" id="art-slug" class="form-input" placeholder="auto-genereres" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kategori</label>
+                <input type="text" id="art-category" class="form-input" value="AI-Strategi & SMB" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Målapp / Konverteringstrakt (CTA i bunn)</label>
+              <select id="art-target-app" class="form-select">
+                <option value="hubzoo" selected>Hubzoo (60s Tilbud & Salg)</option>
+                <option value="upworkz">Upworkz (Anbud & Forslag)</option>
+                <option value="subsentry">SubSentry (SaaS-kutt)</option>
+                <option value="maxmotion">MaxMotion AI (Videostudio)</option>
+                <option value="manus">Manus AI Studio (Bok & Manuskript)</option>
+                <option value="custom_dev">Skreddersydd AI-utvikling</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between;">
+                <label class="form-label">SEO Meta Beskrivelse</label>
+                <span id="art-char-count" style="font-size: 0.78rem; color: var(--text-muted);">0 / 160 tegn</span>
+              </div>
+              <textarea id="art-desc" class="form-textarea" style="min-height: 70px;" placeholder="Kort, fengende sammendrag for Google-søk..."></textarea>
+            </div>
+          </div>
+
+          <!-- Rich Article Editor -->
+          <div>
+            <label class="form-label">Artikkelinnhold</label>
+            <div class="editor-toolbar">
+              <button type="button" class="tool-btn" onclick="document.execCommand('bold')"><b>B</b></button>
+              <button type="button" class="tool-btn" onclick="document.execCommand('italic')"><i>I</i></button>
+              <button type="button" class="tool-btn" onclick="document.execCommand('formatBlock', false, '<h2>')">H2</button>
+              <button type="button" class="tool-btn" onclick="document.execCommand('formatBlock', false, '<h3>')">H3</button>
+              <button type="button" class="tool-btn" onclick="document.execCommand('insertUnorderedList')">• Liste</button>
+              <button type="button" class="tool-btn" onclick="insertCallout()">Sitatboks</button>
+              <button type="button" class="tool-btn" onclick="insertLink()">Lenke</button>
+            </div>
+            <div id="art-canvas" class="rich-canvas" contenteditable="true">
+              <p class="lead">Skriv eller lim inn artikkelen din her. Overskrifter, punkter og sitater formateres automatisk i tråd med resten av AIAPPSY.</p>
+              <h2>Hvorfor automatisering er avgjørende nå</h2>
+              <p>Mange bedrifter mister verdifulle henvendelser fordi responstiden er for lang. Med moderne autonome agenter kan henvendelser svares opp på sekunder.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Active Links Table -->
-    <div class="card">
-      <div class="table-header">
-        <h3>Aktive Kortlenker & Klikkstatistikk</h3>
-        <button onclick="fetchLinks()" style="background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Oppdater ↻</button>
-      </div>
+    <!-- ================================================================= -->
+    <!-- TAB 4: TILBUDSBYGGER & KALKULATOR -->
+    <!-- ================================================================= -->
+    <div class="tab-pane" id="pane-proposals">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 900; margin-bottom: 4px;">Intern Tilbuds- & Prisbygger</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">
+              Bygg formelle tilbud for potensielle oppdragsgivere og generer et pent PDF-forretningsforslag.
+            </p>
+          </div>
+          <a href="/generator.html" target="_blank" class="btn btn-primary" style="font-size: 0.82rem;">
+            <span>⚡</span> Åpne Full Tilbudsgenerator i Ny Fane
+          </a>
+        </div>
 
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Kortlenke</th>
-              <th>Mål-adresse</th>
-              <th>Klikk</th>
-              <th>Handling</th>
-            </tr>
-          </thead>
-          <tbody id="links-tbody">
-            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Laster lenker...</td></tr>
-          </tbody>
-        </table>
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 1rem;">Standard Tjenestepakker</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="background: #090e1a; padding: 14px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong>Autonom Nettside-Agent</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">WordPress, Shopify, Webflow</div>
+                </div>
+                <span style="color: #818cf8; font-weight: 800;">kr 14 900</span>
+              </div>
+              <div style="background: #090e1a; padding: 14px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong>WhatsApp & Messenger Agent</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Omnichannel 24/7 kundeservice</div>
+                </div>
+                <span style="color: #818cf8; font-weight: 800;">kr 19 900</span>
+              </div>
+              <div style="background: #090e1a; padding: 14px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong>Konverterings- & Pop-up Rigg</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Exit-intent & leadsystem</div>
+                </div>
+                <span style="color: #818cf8; font-weight: 800;">kr 7 900</span>
+              </div>
+              <div style="background: #090e1a; padding: 14px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong>RAG Kunnskapsbase & Trening</strong>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Indeksering av interne PDF/dokumenter</div>
+                </div>
+                <span style="color: #818cf8; font-weight: 800;">kr 12 500</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; margin-bottom: 1rem;">Verktøy & Eksport</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem;">
+              Den fullstendige, tospråklige interaktive tilbudsbyggeren med alle modulvalg, valutaomregning (NOK/USD) og direkte PrintCSS-utskrift ligger på <code>/generator.html</code>.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <a href="/generator.html#proposal" target="_blank" class="btn btn-secondary">
+                <span>📄</span> Åpne Tilbudsmalen & PDF-generator
+              </a>
+              <a href="/generator.html#modal-builder" target="_blank" class="btn btn-secondary">
+                <span>🎯</span> Åpne Kampanje-editoren
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: LEADS & HENVENDELSER (CRM) -->
+    <!-- ================================================================= -->
+    <div class="tab-pane" id="pane-leads">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>📥</span> Mottatte Henvendelser & Leads
+          </div>
+          <button id="btn-refresh-leads" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
+            Oppdater henvendelser ↻
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">Mottatt</th>
+                <th style="width: 180px;">Navn & E-post</th>
+                <th style="width: 160px;">Prosjekttype</th>
+                <th>Melding / Forespørsel</th>
+                <th style="width: 120px;">Handling</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Laster inn henvendelser...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- TOAST ALERT -->
+  <div class="admin-toast" id="admin-toast">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Handlingen ble utført!</span>
   </div>
 
   <script>
-    const STORAGE_KEY = 'aiappsy_admin_token';
-    const authOverlay = document.getElementById('auth-overlay');
-    const loginForm = document.getElementById('login-form');
-    const adminPwdInput = document.getElementById('admin-pwd-input');
-    const loginError = document.getElementById('login-error');
-    const btnLogout = document.getElementById('btn-logout');
-
-    const form = document.getElementById('shorten-form');
-    const targetUrlInput = document.getElementById('target-url');
-    const customSlugInput = document.getElementById('custom-slug');
-    const resultBox = document.getElementById('result-box');
-    const resultLink = document.getElementById('result-link');
-    const btnCopy = document.getElementById('btn-copy');
-    const tbody = document.getElementById('links-tbody');
+    const STORAGE_KEY = 'aiappsy_admin_pwd';
 
     function getPassword() {
-      return sessionStorage.getItem(STORAGE_KEY) || '';
+      return sessionStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY) || '';
     }
-
-    function setPassword(pwd) {
-      sessionStorage.setItem(STORAGE_KEY, pwd);
+    function setPassword(p) {
+      sessionStorage.setItem(STORAGE_KEY, p);
+      localStorage.setItem(STORAGE_KEY, p);
     }
-
     function clearPassword() {
       sessionStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY);
     }
+
+    // Toast helper
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('admin-toast');
+      const m = document.getElementById('toast-msg');
+      m.textContent = msg;
+      t.style.borderLeftColor = isError ? 'var(--accent-danger)' : 'var(--accent)';
+      t.style.display = 'flex';
+      setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+
+    // Auth Check
+    const authOverlay = document.getElementById('auth-overlay');
+    const adminLoginForm = document.getElementById('admin-login-form');
+    const adminPwdInput = document.getElementById('admin-pwd-input');
+    const authErrMsg = document.getElementById('auth-err-msg');
 
     async function checkAuth() {
       const pwd = getPassword();
       if (pwd === 'aiappsy2026') {
         authOverlay.style.display = 'none';
-        fetchLinks();
+        initAdminData();
         return true;
       }
       authOverlay.style.display = 'flex';
       return false;
     }
 
-    loginForm.addEventListener('submit', async (e) => {
+    adminLoginForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const pwd = adminPwdInput.value.trim();
-      loginError.style.display = 'none';
-
       if (pwd === 'aiappsy2026') {
         setPassword(pwd);
         authOverlay.style.display = 'none';
-        fetchLinks();
-        return;
-      }
-
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pwd })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            setPassword(pwd);
-            authOverlay.style.display = 'none';
-            fetchLinks();
-            return;
-          }
-        }
-        loginError.textContent = 'Feil passord. Vennligst prøv igjen.';
-        loginError.style.display = 'block';
-      } catch (err) {
-        loginError.textContent = 'Feil passord. Vennligst prøv igjen.';
-        loginError.style.display = 'block';
+        authErrMsg.style.display = 'none';
+        initAdminData();
+      } else {
+        authErrMsg.textContent = 'Feil passord. Vennligst prøv igjen.';
+        authErrMsg.style.display = 'block';
       }
     });
 
-    btnLogout.addEventListener('click', () => {
+    document.getElementById('btn-admin-logout').addEventListener('click', () => {
       clearPassword();
-      authOverlay.style.display = 'flex';
-      adminPwdInput.value = '';
+      window.location.reload();
     });
+
+    // Tab Navigation
+    const tabs = document.querySelectorAll('.nav-tab');
+    const panes = document.querySelectorAll('.tab-pane');
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('pane-' + target).classList.add('active');
+        window.location.hash = target;
+      });
+    });
+
+    // Support deep link hashes e.g. #campaigns
+    if (window.location.hash) {
+      const targetHash = window.location.hash.replace('#', '');
+      const matchingTab = document.querySelector(`.nav-tab[data-tab="${targetHash}"]`);
+      if (matchingTab) matchingTab.click();
+    }
+
+    // Initialize Data
+    function initAdminData() {
+      fetchLinks();
+      fetchCampaign();
+      fetchLeads();
+    }
+
+    // =========================================================================
+    // 1. LINK ENGINE
+    // =========================================================================
+    const linkForm = document.getElementById('link-create-form');
+    const linkTargetUrl = document.getElementById('link-target-url');
+    const linkCustomSlug = document.getElementById('link-custom-slug');
+    const btnSubmitLink = document.getElementById('btn-submit-link');
+    const linkResultBox = document.getElementById('link-result-box');
+    const linkResultAnchor = document.getElementById('link-result-anchor');
+    const btnCopyLinkResult = document.getElementById('btn-copy-link-result');
+    const linksTbody = document.getElementById('links-tbody');
+    const badgeLinkCount = document.getElementById('badge-link-count');
 
     async function fetchLinks() {
-      const pwd = getPassword();
       try {
-        const res = await fetch('/api/links', {
-          headers: { 'x-admin-password': pwd }
+        const res = await fetch('/api/links?_t=' + Date.now(), {
+          headers: { 'x-admin-password': getPassword() }
         });
-        if (res.status === 401) {
-          checkAuth();
-          return;
-        }
+        if (!res.ok) return;
         const data = await res.json();
-        if (data.success) {
-          renderTable(data.links);
+        if (data.success && data.links) {
+          renderLinksTable(data.links);
         }
-      } catch(err) {
-        console.error(err);
+      } catch(e) {
+        console.error('Error fetching links:', e);
       }
     }
 
-    function renderTable(links) {
+    function renderLinksTable(links) {
       const keys = Object.keys(links || {});
+      badgeLinkCount.textContent = keys.length;
+
       if (keys.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Ingen kortlenker opprettet ennå.</td></tr>';
+        linksTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Ingen kortlenker opprettet ennå.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = keys.map(slug => {
+      linksTbody.innerHTML = keys.map(slug => {
         const item = links[slug];
         const fullShort = window.location.origin + '/' + slug;
         return `
           <tr>
-            <td class="slug-cell"><a href="${fullShort}" target="_blank">/${slug}</a></td>
-            <td class="dest-cell" title="${item.url}">${item.url}</td>
-            <td><span class="clicks-badge">${item.clicks || 0} klikk</span></td>
+            <td style="font-family: var(--font-mono); font-weight: 700;">
+              <a href="${fullShort}" target="_blank" style="color: #38bdf8; text-decoration: none;">/${slug}</a>
+            </td>
+            <td style="color: var(--text-muted); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.url || ''}">
+              ${item.url || ''}
+            </td>
             <td>
-              <button class="btn-del" onclick="deleteLink('${slug}')" title="Slett lenke">🗑️</button>
+              <span style="background: rgba(99,102,241,0.15); color: #818cf8; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 0.8rem;">
+                ${item.clicks || 0} klikk
+              </span>
+            </td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-secondary" onclick="copyText('${fullShort}')" style="padding: 3px 8px; font-size: 0.78rem;">Kopier</button>
+                <button class="btn btn-danger" onclick="deleteLink('${slug}')" style="padding: 3px 8px; font-size: 0.78rem;">🗑️</button>
+              </div>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    form.addEventListener('submit', async (e) => {
+    linkForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const url = targetUrlInput.value.trim();
-      const customSlug = customSlugInput.value.trim();
-      const pwd = getPassword();
+      const url = linkTargetUrl.value.trim();
+      const customSlug = linkCustomSlug.value.trim();
 
-      if (!url) {
-        alert('Vennligst oppgi en gyldig mål-URL.');
-        return;
-      }
-
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '⚡ Oppretter...';
+      btnSubmitLink.disabled = true;
+      btnSubmitLink.innerHTML = '⚡ Oppretter...';
 
       try {
-        const payload = {
-          url: url,
-          targetUrl: url,
-          customSlug: customSlug,
-          slug: customSlug
-        };
-
+        const payload = { url, targetUrl: url, customSlug, slug: customSlug };
         let res = await fetch('/api/shorten', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'x-admin-password': pwd
-          },
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
           body: JSON.stringify(payload)
         });
 
-        // Hvis /api/shorten returnerer 404 eller ikke-JSON, prøv /api/links i stedet
-        const contentType = res.headers.get('content-type') || '';
-        if (res.status === 404 || !contentType.includes('application/json')) {
+        if (res.status === 404 || !res.headers.get('content-type')?.includes('application/json')) {
           res = await fetch('/api/links', {
             method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'x-admin-password': pwd
-            },
+            headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
             body: JSON.stringify(payload)
           });
         }
 
-        const finalContentType = res.headers.get('content-type') || '';
-        if (!finalContentType.includes('application/json')) {
-          const text = await res.text();
-          throw new Error('Serverfeil: Responsen var ikke JSON (' + res.status + ').');
-        }
-
         const data = await res.json();
         if (data.success) {
-          const shortUrl = data.shortUrl || (window.location.origin + '/' + data.slug);
-          resultLink.textContent = shortUrl;
-          resultLink.href = shortUrl;
-          resultBox.style.display = 'flex';
-          targetUrlInput.value = '';
-          customSlugInput.value = '';
+          const finalShort = data.shortUrl || `${window.location.origin}/${data.slug}`;
+          linkResultAnchor.textContent = finalShort;
+          linkResultAnchor.href = finalShort;
+          linkResultBox.style.display = 'flex';
+          linkTargetUrl.value = '';
+          linkCustomSlug.value = '';
+          showToast(`Kortlenke /${data.slug} opprettet!`);
           fetchLinks();
         } else {
-          alert('Feil: ' + (data.error || 'Kunne ikke opprette lenke'));
+          showToast('Feil: ' + (data.error || 'Kunne ikke opprette lenke'), true);
         }
       } catch(err) {
-        alert('Feil ved oppretting: ' + err.message);
+        showToast('Nettverksfeil: ' + err.message, true);
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
+        btnSubmitLink.disabled = false;
+        btnSubmitLink.innerHTML = '<span>⚡</span> Opprett Kortlenke';
       }
     });
 
-    btnCopy.addEventListener('click', () => {
-      navigator.clipboard.writeText(resultLink.textContent);
-      btnCopy.textContent = 'Kopiert!';
-      setTimeout(() => btnCopy.textContent = 'Kopier Lenke', 2000);
+    btnCopyLinkResult.addEventListener('click', () => {
+      copyText(linkResultAnchor.textContent);
     });
 
     async function deleteLink(slug) {
-      if (!confirm('Er du sikker på at du vil slette /' + slug + '?')) return;
-      const pwd = getPassword();
+      if (!confirm(`Er du sikker på at du vil slette /${slug}?`)) return;
       try {
-        const res = await fetch('/api/links/' + encodeURIComponent(slug), { 
+        const res = await fetch('/api/links/' + encodeURIComponent(slug), {
           method: 'DELETE',
-          headers: { 'x-admin-password': pwd }
+          headers: { 'x-admin-password': getPassword() }
         });
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const data = await res.json();
-          if (data.success) fetchLinks();
-          else alert('Feil ved sletting: ' + data.error);
-        } else {
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Kortlenke /${slug} ble slettet.`);
           fetchLinks();
+        } else {
+          showToast('Feil: ' + data.error, true);
         }
       } catch(err) {
-        alert('Kunne ikke slette lenke: ' + err.message);
+        showToast('Kunne ikke slette: ' + err.message, true);
       }
     }
 
+    document.getElementById('btn-refresh-links').addEventListener('click', fetchLinks);
+
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt).then(() => {
+        showToast('Kopiert til utklippstavle!');
+      });
+    }
+
+    // =========================================================================
+    // 2. LIVE CAMPAIGN STUDIO
+    // =========================================================================
+    const campActiveToggle = document.getElementById('camp-active-toggle');
+    const campLiveLabel = document.getElementById('camp-live-label');
+    const badgeCampStatus = document.getElementById('badge-camp-status');
+    const campTemplateSelect = document.getElementById('camp-template-select');
+    const campBadgeInput = document.getElementById('camp-badge-input');
+    const campTitleInput = document.getElementById('camp-title-input');
+    const campSubtitleInput = document.getElementById('camp-subtitle-input');
+    const campTriggerSelect = document.getElementById('camp-trigger-select');
+    const campColorSelect = document.getElementById('camp-color-select');
+    const campCtaTextInput = document.getElementById('camp-cta-text-input');
+    const campPlaceholderInput = document.getElementById('camp-placeholder-input');
+    const btnSaveCampaign = document.getElementById('btn-save-campaign');
+    const btnCopyEmbed = document.getElementById('btn-copy-embed');
+
+    // Preview DOM
+    const pvPill = document.getElementById('pv-pill');
+    const pvTitle = document.getElementById('pv-title');
+    const pvDesc = document.getElementById('pv-desc');
+    const pvBtn = document.getElementById('pv-btn');
+    const pvInput = document.getElementById('pv-input');
+    const pvBox = document.getElementById('pv-box');
+
+    function updateLivePreview() {
+      pvPill.textContent = campBadgeInput.value;
+      pvTitle.textContent = campTitleInput.value;
+      pvDesc.textContent = campSubtitleInput.value;
+      pvBtn.textContent = campCtaTextInput.value;
+      pvInput.placeholder = campPlaceholderInput.value;
+
+      const col = campColorSelect.value;
+      pvBtn.style.background = col;
+      pvPill.style.color = col;
+      pvPill.style.background = col + '25';
+      pvPill.style.borderColor = col + '50';
+      pvBox.style.boxShadow = `0 20px 50px rgba(0,0,0,0.6), 0 0 30px ${col}30`;
+    }
+
+    [campBadgeInput, campTitleInput, campSubtitleInput, campCtaTextInput, campPlaceholderInput, campColorSelect].forEach(el => {
+      el.addEventListener('input', updateLivePreview);
+    });
+
+    campTemplateSelect.addEventListener('change', () => {
+      const val = campTemplateSelect.value;
+      if (val === 'lead-magnet') {
+        campBadgeInput.value = '⚡ EKSKLUSIVT TILBUD';
+        campTitleInput.value = 'Vil du automatisere kundeservicen din med AI?';
+        campSubtitleInput.value = 'Få vår sjekkliste over hvordan ledende bedrifter sparer 20 timer ukentlig med autonome agenter.';
+        campCtaTextInput.value = 'Send meg guiden nå →';
+      } else if (val === 'consultation') {
+        campBadgeInput.value = '📞 30 MIN GRATIS SPARISJON';
+        campTitleInput.value = 'Diskuter din AI-idé med våre ingeniører';
+        campSubtitleInput.value = 'Vi analyserer dine arbeidsprosesser og gir deg en konkret plan for hvilke AI-modeller som lønner seg.';
+        campCtaTextInput.value = 'Book uforpliktende samtale →';
+      } else if (val === 'custom-audit') {
+        campBadgeInput.value = '🔍 GRATIS AI-AUDIT';
+        campTitleInput.value = 'Hvor mye kan din nettside automatisere?';
+        campSubtitleInput.value = 'Oppgi e-posten din, så kjører vi en analyse av nettstedet ditt og sender deg en skreddersydd rapport.';
+        campCtaTextInput.value = 'Få gratis analyse →';
+      } else if (val === 'discount') {
+        campBadgeInput.value = '🏷️ TIDSBEGRENSET KAMPANJE';
+        campTitleInput.value = 'Få 20% rabatt på din første autonome agent';
+        campSubtitleInput.value = 'Gjelder ved bestilling innen fredag. Klar for produksjon på WordPress, Shopify eller Webflow på 14 dager.';
+        campCtaTextInput.value = 'Sikre deg rabatten nå →';
+      }
+      updateLivePreview();
+    });
+
+    campActiveToggle.addEventListener('change', () => {
+      if (campActiveToggle.checked) {
+        campLiveLabel.textContent = '🟢 LIVE PÅ NETTSIDEN';
+        campLiveLabel.style.color = '#10b981';
+        badgeCampStatus.textContent = 'Aktiv';
+        badgeCampStatus.style.background = 'rgba(16,185,129,0.2)';
+        badgeCampStatus.style.color = '#10b981';
+      } else {
+        campLiveLabel.textContent = '⚪ INAKTIV';
+        campLiveLabel.style.color = 'var(--text-muted)';
+        badgeCampStatus.textContent = 'Av';
+        badgeCampStatus.style.background = 'rgba(255,255,255,0.08)';
+        badgeCampStatus.style.color = 'var(--text-muted)';
+      }
+    });
+
+    async function fetchCampaign() {
+      try {
+        const res = await fetch('/api/campaign?_t=' + Date.now());
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && data.campaign) {
+          const c = data.campaign;
+          campActiveToggle.checked = !!c.active;
+          campActiveToggle.dispatchEvent(new Event('change'));
+          if (c.badge) campBadgeInput.value = c.badge;
+          if (c.title) campTitleInput.value = c.title;
+          if (c.subtitle) campSubtitleInput.value = c.subtitle;
+          if (c.ctaText) campCtaTextInput.value = c.ctaText;
+          if (c.inputPlaceholder) campPlaceholderInput.value = c.inputPlaceholder;
+          if (c.trigger) campTriggerSelect.value = c.trigger;
+          if (c.themeColor) campColorSelect.value = c.themeColor;
+          updateLivePreview();
+        }
+      } catch(e) {
+        console.error('Error loading campaign:', e);
+      }
+    }
+
+    btnSaveCampaign.addEventListener('click', async () => {
+      btnSaveCampaign.disabled = true;
+      btnSaveCampaign.innerHTML = '<span>⏳</span> Lagrer...';
+
+      const payload = {
+        active: campActiveToggle.checked,
+        badge: campBadgeInput.value,
+        title: campTitleInput.value,
+        subtitle: campSubtitleInput.value,
+        ctaText: campCtaTextInput.value,
+        inputPlaceholder: campPlaceholderInput.value,
+        trigger: campTriggerSelect.value,
+        themeColor: campColorSelect.value
+      };
+
+      try {
+        const res = await fetch('/api/campaign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(payload.active ? '✓ Kampanje lagret og AKTIV på aiappsy.com!' : '✓ Kampanjeoppsett lagret (Inaktiv)');
+        } else {
+          showToast('Feil: ' + data.error, true);
+        }
+      } catch(err) {
+        showToast('Nettverksfeil: ' + err.message, true);
+      } finally {
+        btnSaveCampaign.disabled = false;
+        btnSaveCampaign.innerHTML = '<span>💾</span> Lagre & Oppdater Kampanje';
+      }
+    });
+
+    btnCopyEmbed.addEventListener('click', () => {
+      const code = `<script src="${window.location.origin}/campaign-runner.js" async><\/script>`;
+      copyText(code);
+      showToast('Embed-kode kopiert! Lim inn i <head> eller <body> på WordPress/Webflow.');
+    });
+
+    // =========================================================================
+    // 3. ARTICLES & SEO STUDIO
+    // =========================================================================
+    const artTitle = document.getElementById('art-title');
+    const artSlug = document.getElementById('art-slug');
+    const artCategory = document.getElementById('art-category');
+    const artTargetApp = document.getElementById('art-target-app');
+    const artDesc = document.getElementById('art-desc');
+    const artCharCount = document.getElementById('art-char-count');
+    const artCanvas = document.getElementById('art-canvas');
+    const btnPublishArt = document.getElementById('btn-publish-art');
+
+    function slugify(t) {
+      return t.toLowerCase().trim().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    artTitle.addEventListener('input', () => {
+      if (!artSlug.dataset.manual) {
+        artSlug.value = slugify(artTitle.value);
+      }
+    });
+    artSlug.addEventListener('input', () => { artSlug.dataset.manual = 'true'; });
+
+    artDesc.addEventListener('input', () => {
+      const len = artDesc.value.length;
+      artCharCount.textContent = `${len} / 160 tegn`;
+      artCharCount.style.color = len > 160 ? 'var(--accent-danger)' : (len >= 130 ? 'var(--accent)' : 'var(--text-muted)');
+    });
+
+    function insertCallout() {
+      const txt = prompt('Skriv inn sitat/uthevet tekst:');
+      if (txt) {
+        document.execCommand('insertHTML', false, `<blockquote>"${txt}"</blockquote><p><br></p>`);
+      }
+    }
+
+    function insertLink() {
+      const url = prompt('Måladresse (URL):');
+      if (url) document.execCommand('createLink', false, url);
+    }
+
+    document.getElementById('btn-load-art-preset').addEventListener('click', () => {
+      artTitle.value = 'Hvordan Autonome AI-Agenter Halverer Salgssyklusen for Norske SMB';
+      artSlug.value = 'autonome-ai-agenter-salgssyklus-smb';
+      artCategory.value = 'B2B Salg & AI-Automatisering';
+      artDesc.value = 'Oppdag hvordan ledende håndverkere og konsulentselskaper bruker AI-agenter til å sende tilbud på under 60 sekunder.';
+      artDesc.dispatchEvent(new Event('input'));
+      artCanvas.innerHTML = `
+        <p class="lead">De fleste bedrifter taper over 40% av innkommende leads rett og slett fordi det tar for lang tid å utarbeide og sende et nøyaktig pristilbud.</p>
+        <h2>Hvorfor hurtighet trumfer alt i 2026</h2>
+        <p>Statistikk viser at kunden har 8 ganger høyere sannsynlighet for å velge leverandøren som svarer innen den første timen. Manuelle regneark blir dermed en direkte vekstbrems.</p>
+        <blockquote>"Den raskeste leverandøren med et profesjonelt tilbud vinner oppdraget i 7 av 10 tilfeller."</blockquote>
+        <h2>Slik implementeres en autonom løsning</h2>
+        <p>Ved å koble sammen nettsidens kontaktskjema med en intelligent agent som forstår prislister og timepriser, kan kunden motta et ferdig utkast sekunder etter henvendelsen.</p>
+      `;
+      showToast('Mal lastet inn i skrivebordet!');
+    });
+
+    btnPublishArt.addEventListener('click', async () => {
+      const title = artTitle.value.trim();
+      const slug = (artSlug.value || slugify(title)).trim();
+      const contentHtml = artCanvas.innerHTML;
+
+      if (!title || !slug || !contentHtml) {
+        alert('Vennligst fyll ut tittel, slug og innhold før publisering.');
+        return;
+      }
+
+      btnPublishArt.disabled = true;
+      btnPublishArt.innerHTML = '🚀 Publiserer...';
+
+      const payload = {
+        title,
+        slug,
+        category: artCategory.value,
+        targetApp: artTargetApp.value,
+        metaDesc: artDesc.value || title,
+        contentHtml,
+        readTime: '5 min read',
+        publishDate: new Date().toISOString().split('T')[0]
+      };
+
+      try {
+        const res = await fetch('/api/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-password': getPassword() },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`✓ Artikkel publisert: /articles/${slug}.html (Sitemap oppdatert!)`);
+          setTimeout(() => {
+            window.open(`/articles/${slug}.html`, '_blank');
+          }, 1200);
+        } else {
+          showToast('Publisering feilet (HTTP ' + res.status + ')', true);
+        }
+      } catch(err) {
+        showToast('Feil ved publisering: ' + err.message, true);
+      } finally {
+        btnPublishArt.disabled = false;
+        btnPublishArt.innerHTML = '🚀 Publiser Live Nå';
+      }
+    });
+
+    // =========================================================================
+    // 5. LEADS & HENVENDELSER (CRM)
+    // =========================================================================
+    const leadsTbody = document.getElementById('leads-tbody');
+    const badgeLeadCount = document.getElementById('badge-lead-count');
+
+    async function fetchLeads() {
+      try {
+        const res = await fetch('/api/leads?_t=' + Date.now(), {
+          headers: { 'x-admin-password': getPassword() }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const leads = data.leads || [];
+        renderLeadsTable(leads);
+      } catch(e) {
+        console.error('Error loading leads:', e);
+      }
+    }
+
+    function renderLeadsTable(leads) {
+      badgeLeadCount.textContent = leads.length;
+
+      if (leads.length === 0) {
+        leadsTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Ingen henvendelser mottatt ennå.</td></tr>';
+        return;
+      }
+
+      leadsTbody.innerHTML = leads.map(l => {
+        const dateStr = l.createdAt ? new Date(l.createdAt).toLocaleString('no-NO', { dateStyle: 'short', timeStyle: 'short' }) : 'Nylig';
+        return `
+          <tr>
+            <td style="color: var(--text-muted); font-size: 0.8rem; white-space: nowrap;">${dateStr}</td>
+            <td>
+              <div style="font-weight: 700; color: #ffffff;">${escapeHtml(l.name || 'Anonym')}</div>
+              <a href="mailto:${escapeHtml(l.email || '')}" style="color: #38bdf8; font-size: 0.82rem; text-decoration: none;">${escapeHtml(l.email || '')}</a>
+            </td>
+            <td>
+              <span style="background: rgba(99,102,241,0.15); color: #818cf8; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 0.78rem;">
+                ${escapeHtml(l.projectType || 'Generell')}
+              </span>
+            </td>
+            <td style="color: #cbd5e1; font-size: 0.88rem; max-width: 400px; line-height: 1.5;">
+              ${escapeHtml(l.message || 'Ingen melding')}
+            </td>
+            <td>
+              <button class="btn btn-secondary" onclick="copyText('${escapeHtml(l.email || '')}')" style="padding: 4px 8px; font-size: 0.78rem;">
+                Kopier e-post
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('btn-refresh-leads').addEventListener('click', fetchLeads);
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    // Start
     checkAuth();
   </script>
 </body>
