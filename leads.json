@@ -1,5 +1,23 @@
 [
   {
+    "id": "lead_1789687783732",
+    "name": "Audit Lead",
+    "email": "lead@audit.no",
+    "projectType": "General",
+    "message": "Testing inquiry system",
+    "createdAt": "2026-09-17T23:29:43.732Z",
+    "ip": "127.0.0.1",
+    "status": "contacted",
+    "updatedAt": "2026-09-17T23:29:43.735Z",
+    "notes": [
+      {
+        "id": "note_1789687783735",
+        "text": "Audit note added",
+        "createdAt": "2026-09-17T23:29:43.735Z"
+      }
+    ]
+  },
+  {
     "id": "lead_1789629178716",
     "name": "Audit Lead",
     "email": "lead@audit.no",
@@ -90,6 +108,11 @@
     "status": "meeting_booked",
     "notes": [
       {
+        "id": "note_1789687783395",
+        "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
+        "createdAt": "2026-09-17T23:29:43.395Z"
+      },
+      {
         "id": "note_1789629178365",
         "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
         "createdAt": "2026-09-17T07:12:58.365Z"
@@ -116,7 +139,7 @@
       }
     ],
     "communications": [],
-    "updatedAt": "2026-09-17T07:12:58.365Z"
+    "updatedAt": "2026-09-17T23:29:43.395Z"
   },
   {
     "id": "lead_1789608146118",
