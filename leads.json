@@ -1,5 +1,41 @@
 [
   {
+    "id": "lead_1789629178716",
+    "name": "Audit Lead",
+    "email": "lead@audit.no",
+    "projectType": "General",
+    "message": "Testing inquiry system",
+    "createdAt": "2026-09-17T07:12:58.716Z",
+    "ip": "127.0.0.1",
+    "status": "contacted",
+    "updatedAt": "2026-09-17T07:12:58.718Z",
+    "notes": [
+      {
+        "id": "note_1789629178718",
+        "text": "Audit note added",
+        "createdAt": "2026-09-17T07:12:58.718Z"
+      }
+    ]
+  },
+  {
+    "id": "lead_1789628044875",
+    "name": "Audit Lead",
+    "email": "lead@audit.no",
+    "projectType": "General",
+    "message": "Testing inquiry system",
+    "createdAt": "2026-09-17T06:54:04.875Z",
+    "ip": "127.0.0.1",
+    "status": "contacted",
+    "updatedAt": "2026-09-17T06:54:04.877Z",
+    "notes": [
+      {
+        "id": "note_1789628044877",
+        "text": "Audit note added",
+        "createdAt": "2026-09-17T06:54:04.877Z"
+      }
+    ]
+  },
+  {
     "id": "lead_1789627973353",
     "name": "Audit Lead",
     "email": "lead@audit.no",
@@ -54,6 +90,16 @@
     "status": "meeting_booked",
     "notes": [
       {
+        "id": "note_1789629178365",
+        "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
+        "createdAt": "2026-09-17T07:12:58.365Z"
+      },
+      {
+        "id": "note_1789628044567",
+        "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
+        "createdAt": "2026-09-17T06:54:04.567Z"
+      },
+      {
         "id": "note_1789627972980",
         "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
         "createdAt": "2026-09-17T06:52:52.980Z"
@@ -70,7 +116,7 @@
       }
     ],
     "communications": [],
-    "updatedAt": "2026-09-17T06:52:52.980Z"
+    "updatedAt": "2026-09-17T07:12:58.365Z"
   },
   {
     "id": "lead_1789608146118",

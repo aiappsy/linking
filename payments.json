@@ -26,8 +26,8 @@
       "title_en": "Autonomous Proposal Architect & Deal Closer",
       "desc_no": "Enterprise AI-anbudsarkitekt for frilansere, konsulenter og byråer. Analyserer utlysninger på sekunder, avdekker skjulte fallgruver, og genererer uimotståelige 220-tegns åpningskroker som vinner oppdrag.",
       "desc_en": "Enterprise proposal architect for freelancers, consultants, and agencies. Analyzes job postings in seconds, identifies scope gotchas, and crafts winning 220-char hooks that convert.",
-      "price_nok": 299,
-      "price_usd": 29,
+      "price_nok": 349,
+      "price_usd": 35,
       "billingType": "monthly",
       "enabled": true,
       "acceptedMethods": [
@@ -35,7 +35,8 @@
         "stripe"
       ],
       "icon": "💼",
-      "aiStudioUrl": "https://upworkz.ai.studio"
+      "aiStudioUrl": "https://upworkz.ai.studio",
+      "price": 349
     },
     "hubzoo": {
       "name": "Hubzoo",
@@ -201,6 +202,5 @@
       },
       "createdAt": "2026-09-17T01:22:26.117Z"
     }
-  ],
-  "updatedAt": "2026-09-17T06:52:53.361Z"
+  ]
 }

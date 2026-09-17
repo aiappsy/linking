@@ -1,5 +1,32 @@
 [
   {
+    "code": "AIASSIST30",
+    "discountType": "percent",
+    "discountValue": 30,
+    "active": true,
+    "notes": "Opprettet via AI Copilot chat",
+    "createdAt": "2026-09-17T07:13:07.025Z"
+  },
+  {
+    "code": "COPILOTTEST25",
+    "discountType": "percent",
+    "discountValue": 25,
+    "active": true,
+    "expiryDate": null,
+    "usageLimit": null,
+    "usedCount": 0,
+    "notes": "Opprettet av AI-assistenten",
+    "createdAt": "2026-09-17T07:13:07.023Z"
+  },
+  {
+    "code": "P",
+    "discountType": "percent",
+    "discountValue": 30,
+    "active": true,
+    "notes": "Opprettet via AI Copilot chat",
+    "createdAt": "2026-09-17T07:09:26.430Z"
+  },
+  {
     "code": "AI2026",
     "discountType": "percent",
     "discountValue": 20,
