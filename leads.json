@@ -1,5 +1,22 @@
 [
   {
+    "id": "lead_1789608146118",
+    "name": "Mari Hansen",
+    "email": "mari.hansen@nordicagency.no",
+    "projectType": "Kunde: Upworkz (299 NOK)",
+    "message": "Gjennomført kjøp via PAYPAL for Upworkz. Transaksjon: txn_1789608146117",
+    "createdAt": "2026-09-17T01:22:26.118Z",
+    "status": "won",
+    "notes": [
+      {
+        "id": "note_1789608146118",
+        "text": "Kjøpte tilgang via PAYPAL (Ordre: paypal_ord_1789608146114_hp5fx)",
+        "createdAt": "2026-09-17T01:22:26.118Z"
+      }
+    ],
+    "communications": []
+  },
+  {
     "id": "lead_1789607163940",
     "name": "Test Bedrift AS",
     "email": "test@bedrift.no",
