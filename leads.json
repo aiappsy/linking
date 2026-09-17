@@ -1,5 +1,78 @@
 [
   {
+    "id": "lead_1789627973353",
+    "name": "Audit Lead",
+    "email": "lead@audit.no",
+    "projectType": "General",
+    "message": "Testing inquiry system",
+    "createdAt": "2026-09-17T06:52:53.353Z",
+    "ip": "127.0.0.1",
+    "status": "contacted",
+    "updatedAt": "2026-09-17T06:52:53.357Z",
+    "notes": [
+      {
+        "id": "note_1789627973357",
+        "text": "Audit note added",
+        "createdAt": "2026-09-17T06:52:53.357Z"
+      }
+    ]
+  },
+  {
+    "id": "lead_1789627855262",
+    "name": "Audit Lead",
+    "email": "lead@audit.no",
+    "projectType": "General",
+    "message": "Testing inquiry system",
+    "createdAt": "2026-09-17T06:50:55.262Z",
+    "ip": "127.0.0.1",
+    "status": "contacted",
+    "updatedAt": "2026-09-17T06:50:55.265Z",
+    "notes": [
+      {
+        "id": "note_1789627855265",
+        "text": "Audit note added",
+        "createdAt": "2026-09-17T06:50:55.265Z"
+      }
+    ]
+  },
+  {
+    "id": "lead_1789627674679",
+    "name": "Audit Lead",
+    "email": "lead@audit.no",
+    "projectType": "General",
+    "message": "Testing inquiry system",
+    "createdAt": "2026-09-17T06:47:54.679Z",
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "lead_1789627674664",
+    "name": "Audit User",
+    "email": "audit@test.no",
+    "projectType": "Møte: 30 min Gratis AI-Strategisamtale",
+    "message": "Booket tidspunkt: 2026-10-01 kl. 10:00. Notater: Ingen",
+    "createdAt": "2026-09-17T06:47:54.664Z",
+    "status": "meeting_booked",
+    "notes": [
+      {
+        "id": "note_1789627972980",
+        "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
+        "createdAt": "2026-09-17T06:52:52.980Z"
+      },
+      {
+        "id": "note_1789627855248",
+        "text": "Booket møte: 30 min Gratis AI-Strategisamtale den 2026-10-01 kl. 10:00",
+        "createdAt": "2026-09-17T06:50:55.248Z"
+      },
+      {
+        "id": "note_1789627674664",
+        "text": "Møte opprettet via bookingportal (30 min Gratis AI-Strategisamtale)",
+        "createdAt": "2026-09-17T06:47:54.664Z"
+      }
+    ],
+    "communications": [],
+    "updatedAt": "2026-09-17T06:52:52.980Z"
+  },
+  {
     "id": "lead_1789608146118",
     "name": "Mari Hansen",
     "email": "mari.hansen@nordicagency.no",

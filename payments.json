@@ -94,6 +94,37 @@
       "icon": "🎬",
       "aiStudioUrl": "https://maxmotion.ai.studio"
     },
+    "aistudio-crm": {
+      "name": "AI Studio CRM",
+      "enabled": true,
+      "price": 1490,
+      "currency": "NOK",
+      "billingType": "monthly",
+      "planName": "AI Studio CRM",
+      "acceptedMethods": [
+        "paypal",
+        "stripe"
+      ]
+    },
+    "custom-agent": {
+      "name": "Turnkey Custom AI Agent",
+      "planName_no": "Nøkkelferdig Leveranse",
+      "planName_en": "Turnkey Enterprise Delivery",
+      "title_no": "Skreddersydd Autonom AI-Agent for Bedrifter",
+      "title_en": "Bespoke Autonomous AI Action Agent for Enterprise",
+      "desc_no": "Nøkkelferdig AI-agent levert på 7–14 dager med 100 % kildekodeoverføring.",
+      "desc_en": "Custom production-grade AI agent delivered in 7–14 days with 100% IP handover.",
+      "price_nok": 17800,
+      "price_usd": 1690,
+      "billingType": "one-time",
+      "enabled": true,
+      "acceptedMethods": [
+        "paypal",
+        "stripe"
+      ],
+      "icon": "⚡",
+      "aiStudioUrl": "https://aiappsy.com/generator.html"
+    },
     "mediabunny": {
       "name": "MediaBunny",
       "planName_no": "MediaBunny Pro",
@@ -150,25 +181,6 @@
       ],
       "icon": "📚",
       "aiStudioUrl": "https://manus.ai.studio"
-    },
-    "custom-agent": {
-      "name": "Turnkey Custom AI Agent",
-      "planName_no": "Nøkkelferdig Leveranse",
-      "planName_en": "Turnkey Enterprise Delivery",
-      "title_no": "Skreddersydd Autonom AI-Agent for Bedrifter",
-      "title_en": "Bespoke Autonomous AI Action Agent for Enterprise",
-      "desc_no": "Nøkkelferdig AI-agent levert på 7–14 dager med 100 % kildekodeoverføring.",
-      "desc_en": "Custom production-grade AI agent delivered in 7–14 days with 100% IP handover.",
-      "price_nok": 17800,
-      "price_usd": 1690,
-      "billingType": "one-time",
-      "enabled": true,
-      "acceptedMethods": [
-        "paypal",
-        "stripe"
-      ],
-      "icon": "⚡",
-      "aiStudioUrl": "https://aiappsy.com/generator.html"
     }
   },
   "transactions": [
@@ -190,5 +202,5 @@
       "createdAt": "2026-09-17T01:22:26.117Z"
     }
   ],
-  "updatedAt": "2026-09-17T01:22:26.122Z"
+  "updatedAt": "2026-09-17T06:52:53.361Z"
 }

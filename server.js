@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -700,12 +701,9 @@ app.post('/api/inquiry', (req, res) => {
   };
 
   try {
-    let leads = [];
-    if (fs.existsSync(LEADS_FILE)) {
-      try { leads = JSON.parse(fs.readFileSync(LEADS_FILE, 'utf8')); } catch (e) {}
-    }
+    let leads = typeof loadLeadsSafe === 'function' ? loadLeadsSafe() : [];
     leads.unshift(lead);
-    fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2), 'utf8');
+    if (typeof saveLeadsSafe === 'function') saveLeadsSafe(leads);
 
     if (isFirestoreReady && firestoreDb) {
       firestoreDb.collection('leads').doc(lead.id).set(lead).catch(err => {
@@ -717,13 +715,15 @@ app.post('/api/inquiry', (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Takk! Din henvendelse er mottatt. Vi svarer innen 24 timer.'
+      message: 'Takk! Din henvendelse er mottatt. Vi svarer innen 24 timer.',
+      lead
     });
   } catch (err) {
     console.error('Feil ved lagring av henvendelse:', err);
     return res.json({
       success: true,
-      message: 'Mottatt! Vi kontakter deg snarest.'
+      message: 'Mottatt! Vi kontakter deg snarest.',
+      lead
     });
   }
 });
