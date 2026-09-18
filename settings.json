@@ -19,6 +19,16 @@
     "email": "paljuritzen@gmail.com",
     "address": "Dronning Eufemias gate 16, 0191 Oslo"
   },
+  "email": {
+    "enabled": true,
+    "smtpHost": "smtp.gmail.com",
+    "smtpPort": 465,
+    "smtpSecure": true,
+    "smtpUser": "paljuritzen@gmail.com",
+    "smtpPass": "",
+    "notificationEmail": "paul@aiappsy.com",
+    "senderName": "Pål Juritzen · AIAPPSY"
+  },
   "domains": [
     {
       "domain": "aiappsy.com",
