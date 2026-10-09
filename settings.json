@@ -1,6 +1,6 @@
 {
   "activeDomain": "aiappsy.com",
-  "shortDomain": "atlastravelclub.com",
+  "shortDomain": "go.aiappsy.no",
   "serviceName": "aiappsy-link-engine",
   "region": "us-west1",
   "cloudRunUrl": "https://aiappsy-link-engine-910579541086.us-west1.run.app",
@@ -49,39 +49,6 @@
         "216.239.38.21"
       ],
       "gcloudCommand": "gcloud beta run domain-mappings create --service aiappsy-link-engine --domain aiappsy.com --region us-west1"
-    },
-    {
-      "domain": "atlastravelclub.com",
-      "label": "atlastravelclub.com (Atlas Travel Club – 19 tegn)",
-      "isDefault": false,
-      "isSubdomain": false,
-      "subdomain": "@",
-      "parentDomain": "atlastravelclub.com",
-      "rootDestination": "https://atlaslaunch.ai.studio",
-      "fallback404": "https://atlaslaunch.ai.studio",
-      "recordType": "A (4 poster)",
-      "target": "216.239.32.21 (samt .34, .36, .38)",
-      "aRecords": [
-        "216.239.32.21",
-        "216.239.34.21",
-        "216.239.36.21",
-        "216.239.38.21"
-      ],
-      "gcloudCommand": "gcloud beta run domain-mappings create --service aiappsy-link-engine --domain atlastravelclub.com --region us-west1"
-    },
-    {
-      "domain": "vip.atlastravelclub.com",
-      "label": "vip.atlastravelclub.com (Atlas VIP Subdomene)",
-      "isDefault": false,
-      "isSubdomain": true,
-      "subdomain": "vip",
-      "parentDomain": "atlastravelclub.com",
-      "rootDestination": "https://atlaslaunch.ai.studio",
-      "fallback404": "https://atlaslaunch.ai.studio",
-      "recordType": "CNAME",
-      "target": "ghs.googlehosted.com.",
-      "aRecords": [],
-      "gcloudCommand": "gcloud beta run domain-mappings create --service aiappsy-link-engine --domain vip.atlastravelclub.com --region us-west1"
     },
     {
       "domain": "go.aiappsy.no",

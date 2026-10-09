@@ -270,7 +270,7 @@ app.use((req, res, next) => {
 
   if (domainConfig) {
     req.domainConfig = domainConfig;
-    const dest = domainConfig.rootDestination || (domainConfig.domain.includes('atlastravelclub') ? 'https://atlaslaunch.ai.studio' : '');
+    const dest = domainConfig.rootDestination || '';
     // Dersom noen besøker rotkatalogen '/' eller '/index.html' på et domene med en spesifisert rootDestination
     if ((req.path === '/' || req.path === '/index.html') && dest) {
       console.log(`[Host Routing] Rotforespørsel for ${host} -> 302 omdirigering til ${dest}`);
