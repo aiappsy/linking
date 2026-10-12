@@ -3224,8 +3224,8 @@
 
       domainsTbody.innerHTML = domains.map(d => {
         let effectiveRoot = d.rootDestination;
-        if (d.domain.includes('atlastravelclub') && (!effectiveRoot || effectiveRoot === '')) {
-          effectiveRoot = 'https://atlaslaunch.ai.studio';
+        if (d.domain.includes('atlastravelclub') && (!effectiveRoot || effectiveRoot === '' || effectiveRoot.includes('ai.studio'))) {
+          effectiveRoot = 'https://atlaslaunch.web.app';
         }
 
         const rootText = effectiveRoot 
